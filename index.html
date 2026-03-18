@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WP Frame Search · Internal</title>
+<style>
+  :root {
+    --bg:       #f5f4f0;
+    --surface:  #ffffff;
+    --border:   #e2e0d8;
+    --border-md:#c8c6bc;
+    --text:     #1a1a18;
+    --muted:    #6b6a64;
+    --hint:     #9e9d96;
+    --blue-bg:  #e8f0fb;
+    --blue-txt: #1a4a8a;
+    --blue-bdr: #b3c9ee;
+    --green-bg: #e8f4e8;
+    --green-txt:#1e5e1e;
+    --green-bdr:#a8d4a8;
+    --amber-bg: #fdf3dc;
+    --amber-txt:#7a4f00;
+    --amber-bdr:#e8c96a;
+    --red-bg:   #fdecea;
+    --red-txt:  #8a1a1a;
+    --radius:   8px;
+    --radius-lg:12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: var(--text);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); min-height: 100vh; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .logo { font-size: 13px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+  .logo-sep { color: var(--hint); margin: 0 4px; }
+  .search-wrap { flex: 1; position: relative; max-width: 480px; }
+  .search-wrap input {
+    width: 100%; padding: 8px 12px 8px 34px;
+    font-size: 13px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--bg); color: var(--text);
+    transition: border-color .15s;
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--blue-bdr); background: var(--surface); }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: .4; pointer-events: none; }
+  .loc-badge { font-size: 11px; padding: 4px 10px; background: var(--blue-bg); color: var(--blue-txt); border: 1px solid var(--blue-bdr); border-radius: 20px; white-space: nowrap; }
+  .admin-toggle { font-size: 12px; padding: 6px 12px; background: var(--surface); color: var(--muted); border: 1px solid var(--border-md); border-radius: var(--radius); cursor: pointer; white-space: nowrap; }
+  .admin-toggle:hover { background: var(--bg); }
+
+  .app-body { display: flex; height: calc(100vh - 45px); overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 210px; min-width: 210px; padding: 16px 14px; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .facet-title { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--hint); margin-bottom: 8px; }
+  .range-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .range-row label { font-size: 11px; color: var(--muted); min-width: 26px; }
+  .range-row input[type=range] { flex: 1; accent-color: var(--blue-txt); }
+  .range-val { font-size: 12px; font-weight: 600; color: var(--text); min-width: 30px; text-align: right; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    font-size: 11px; padding: 3px 9px; border: 1px solid var(--border-md); border-radius: 20px;
+    cursor: pointer; color: var(--muted); background: transparent; transition: all .12s; white-space: nowrap;
+  }
+  .chip:hover { background: var(--bg); }
+  .chip.on { background: var(--blue-bg); border-color: var(--blue-bdr); color: var(--blue-txt); font-weight: 500; }
+  .book-btn {
+    width: 100%; text-align: left; font-size: 12px; padding: 5px 9px;
+    border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;
+    color: var(--muted); background: transparent; transition: all .12s; margin-bottom: 4px; display: block;
+  }
+  .book-btn:hover { background: var(--bg); }
+  .book-btn.on { background: var(--amber-bg); border-color: var(--amber-bdr); color: var(--amber-txt); font-weight: 500; }
+  .clear-link { font-size: 11px; color: var(--hint); background: none; border: none; cursor: pointer; padding: 0; text-align: left; }
+  .clear-link:hover { color: var(--muted); }
+
+  /* RESULTS */
+  .results-pane { flex: 1; overflow-y: auto; padding: 16px 18px; }
+  .results-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .results-count { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .results-count strong { color: var(--text); }
+  .active-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .atag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; background: var(--surface); border: 1px solid var(--border-md); border-radius: 20px; color: var(--muted); }
+  .atag button { border: none; background: none; font-size: 14px; line-height: 1; cursor: pointer; color: var(--hint); padding: 0; }
+  .atag button:hover { color: var(--text); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--hint); font-size: 13px; grid-column: 1/-1; }
+  #status-msg { padding: 60px; text-align: center; color: var(--hint); font-size: 13px; }
+
+  /* FRAME CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 13px; transition: border-color .15s, box-shadow .15s; }
+  .card:hover { border-color: var(--border-md); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .frame-art { height: 54px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .frame-art svg { width: 100%; height: 54px; overflow: visible; }
+  .card-name { font-size: 13px; font-weight: 600; margin-bottom: 1px; }
+  .card-sku { font-size: 11px; color: var(--hint); margin-bottom: 8px; }
+  .mm-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 7px; }
+  .mm-pill { font-size: 10px; padding: 2px 7px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); transition: all .12s; }
+  .mm-pill.match { background: var(--green-bg); border-color: var(--green-bdr); color: var(--green-txt); font-weight: 500; }
+  .book-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .book-tag { font-size: 10px; padding: 2px 6px; background: var(--amber-bg); border-radius: 4px; color: var(--amber-txt); }
+  .avail-row { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--border); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot.g { background: #2e7d32; } .dot.a { background: #b45309; }
+
+  /* MODAL */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 100; align-items: center; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border); }
+  .modal h2 { font-size: 15px; margin-bottom: 16px; }
+  .modal label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; }
+  .modal input, .modal select { width: 100%; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border-md); border-radius: var(--radius); background: var(--bg); color: var(--text); }
+  .modal input:focus, .modal select:focus { outline: none; border-color: var(--blue-bdr); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn { padding: 8px 16px; font-size: 13px; border-radius: var(--radius); border: 1px solid var(--border-md); cursor: pointer; font-weight: 500; background: transparent; color: var(--muted); }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--blue-bg); color: var(--blue-txt); border-color: var(--blue-bdr); }
+  .btn-primary:hover { background: #d4e6f8; }
+  .form-msg { font-size: 12px; margin-top: 8px; min-height: 18px; }
+  .form-msg.ok { color: var(--green-txt); } .form-msg.err { color: var(--red-txt); }
+
+  /* PASSWORD GATE */
+  #gate {
+    position: fixed; inset: 0; z-index: 999;
+    background: #00263A;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #gate.hidden { display: none; }
+  .gate-logo {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: .06em;
+    color: rgba(255,255,255,.9); margin-bottom: 36px;
+  }
+  .gate-logo span { color: rgba(255,255,255,.35); margin: 0 6px; }
+  .gate-box {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px; padding: 32px 36px;
+    width: 320px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .gate-label {
+    font-size: 11px; font-weight: 500; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(255,255,255,.4);
+  }
+  .gate-input {
+    width: 100%; padding: 10px 14px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 4px; color: white;
+    font-size: 14px; letter-spacing: .12em;
+    outline: none; transition: border-color .15s;
+  }
+  .gate-input:focus { border-color: rgba(255,255,255,.4); }
+  .gate-input::placeholder { color: rgba(255,255,255,.25); letter-spacing: .04em; }
+  .gate-btn {
+    width: 100%; padding: 10px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 4px; color: white;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background .15s; letter-spacing: .04em;
+  }
+  .gate-btn:hover { background: rgba(255,255,255,.2); }
+  .gate-error {
+    font-size: 12px; color: #f4a5a5;
+    text-align: center; min-height: 18px;
+  }
+  .gate-hint {
+    font-size: 11px; color: rgba(255,255,255,.2);
+    text-align: center; margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-logo">WP<span>|</span>Frame Search</div>
+  <div class="gate-box">
+    <div class="gate-label">Access code</div>
+    <input class="gate-input" type="password" id="gate-pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="gate-btn" onclick="checkPw()">Continue →</button>
+    <div class="gate-error" id="gate-err"></div>
+  </div>
+  <div class="gate-hint">Shared by Mallory Odom · Portfolio prototype</div>
+</div>
+
+<div class="topbar">
+  <div class="logo">WP<span class="logo-sep">|</span>Frame Search</div>
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="6.5" cy="6.5" r="5.5"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5"/>
+    </svg>
+    <input type="text" id="q" placeholder="Name, SKU, or color…" oninput="doFilter()">
+  </div>
+  <div class="loc-badge" id="loc-badge">Loading…</div>
+  <button class="admin-toggle" onclick="openModal()">+ Add frame</button>
+</div>
+
+<div class="app-body">
+  <div class="sidebar">
+
+    <div>
+      <div class="facet-title">Lens width (mm)</div>
+      <div class="range-row"><label>min</label><input type="range" id="lmin" min="44" max="60" value="44" step="1" oninput="syncR('l');doFilter()"><span class="range-val" id="lmin-v">44</span></div>
+      <div class="range-row"><label>max</label><input type="range" id="lmax" min="44" max="60" value="60" step="1" oninput="syncR('l');doFilter()"><span class="range-val" id="lmax-v">60</span></div>
+    </div>
+
+    <div>
+      <div class="facet-title">Bridge (mm)</div>
+      <div class="range-row"><label>min</label><input type="range" id="bmin" min="14" max="26" value="14" step="1" oninput="syncR('b');doFilter()"><span class="range-val" id="bmin-v">14</span></div>
+      <div class="range-row"><label>max</label><input type="range" id="bmax" min="14" max="26" value="26" step="1" oninput="syncR('b');doFilter()"><span class="range-val" id="bmax-v">26</span></div>
+    </div>
+
+    <div>
+      <div class="facet-title">Temple length (mm)</div>
+      <div class="range-row"><label>min</label><input type="range" id="tmin" min="130" max="155" value="130" step="1" oninput="syncR('t');doFilter()"><span class="range-val" id="tmin-v">130</span></div>
+      <div class="range-row"><label>max</label><input type="range" id="tmax" min="130" max="155" value="155" step="1" oninput="syncR('t');doFilter()"><span class="range-val" id="tmax-v">155</span></div>
+    </div>
+
+    <div>
+      <div class="facet-title">Fit</div>
+      <div class="chip-row">
+        <button class="chip" data-g="fit" onclick="toggleChip(this)">Narrow</button>
+        <button class="chip" data-g="fit" onclick="toggleChip(this)">Medium</button>
+        <button class="chip" data-g="fit" onclick="toggleChip(this)">Wide</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="facet-title">Shape</div>
+      <div class="chip-row" id="shape-chips">
+        <button class="chip" data-g="shape" onclick="toggleChip(this)">Rectangle</button>
+        <button class="chip" data-g="shape" onclick="toggleChip(this)">Round</button>
+        <button class="chip" data-g="shape" onclick="toggleChip(this)">Cat-eye</button>
+        <button class="chip" data-g="shape" onclick="toggleChip(this)">Oval</button>
+        <button class="chip" data-g="shape" onclick="toggleChip(this)">Square</button>
+      </div>
+    </div>
+
+    <div id="book-facet">
+      <div class="facet-title">Style book</div>
+    </div>
+
+    <button class="clear-link" onclick="clearAll()">Clear all filters</button>
+  </div>
+
+  <div class="results-pane">
+    <div class="results-header">
+      <div class="results-count"><strong id="rcount">—</strong> frames</div>
+      <div class="active-tags" id="atags"></div>
+    </div>
+    <div id="status-msg">Loading…</div>
+    <div class="grid" id="grid" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ADD FRAME MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>Add a frame</h2>
+    <label>Frame name</label>
+    <input type="text" id="f-name" placeholder="e.g. Percey">
+    <label>SKU</label>
+    <input type="text" id="f-sku" placeholder="e.g. OPT-1042">
+    <label>Color(s) — comma separated</label>
+    <input type="text" id="f-colors" placeholder="Jet Black, Whiskey Tortoise">
+    <div class="form-row">
+      <div><label>Lens width (mm)</label><input type="number" id="f-lens" min="44" max="62" value="51"></div>
+      <div><label>Bridge (mm)</label><input type="number" id="f-bridge" min="14" max="26" value="18"></div>
+      <div><label>Temple (mm)</label><input type="number" id="f-temple" min="130" max="155" value="145"></div>
+    </div>
+    <label>Shape</label>
+    <select id="f-shape">
+      <option>Rectangle</option><option>Round</option>
+      <option>Cat-eye</option><option>Oval</option><option>Square</option>
+    </select>
+    <label>Style books — comma separated</label>
+    <input type="text" id="f-books" placeholder="Rectangle Book, Heritage Book">
+    <label>Availability</label>
+    <select id="f-avail">
+      <option value="true">In store</option>
+      <option value="false">On order</option>
+    </select>
+    <label>Units on hand</label>
+    <input type="number" id="f-units" value="3" min="0">
+    <div class="form-msg" id="fmsg"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitFrame()">Save frame</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────────
+  FIREBASE SETUP (optional — app works without this)
+  ─────────────────────────────────────────────────────────────────────
+  1. Go to https://console.firebase.google.com → New project
+  2. Add a web app → copy the firebaseConfig object below
+  3. Enable Firestore → Start in test mode
+  4. Uncomment this entire block and paste your config values
+  5. Push to GitHub — the app will now read/write live from Firestore
+
+<script type="module">
+  import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore,
+           collection,
+           getDocs,
+           addDoc }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "PASTE_YOUR_API_KEY",
+    authDomain:        "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId:         "PASTE_YOUR_PROJECT_ID",
+    storageBucket:     "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId:             "PASTE_YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  window._loadFrames = async () => {
+    const snap = await getDocs(collection(db, "frames"));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  };
+
+  window._saveFrame = async (frame) => {
+    return await addDoc(collection(db, "frames"), frame);
+  };
+</script>
+──────────────────────────────────────────────────────────────────── -->
+
+<script>
+// ─── Frame shape SVG paths ────────────────────────────────────────────────
+const SHAPES = {
+  Rectangle: () => `M8 18 Q8 10 16 10 L94 10 Q102 10 102 18 L102 36 Q102 44 94 44 L16 44 Q8 44 8 36 Z`,
+  Round:     () => `M55 10 A22 22 0 1 1 54.9 10`,
+  Oval:      () => `M14 27 Q14 10 55 10 Q96 10 96 27 Q96 44 55 44 Q14 44 14 27 Z`,
+  "Cat-eye": () => `M8 34 Q6 18 18 14 L74 11 Q102 7 102 22 L102 34 Q102 44 92 44 L18 44 Q8 44 8 34 Z`,
+  Square:    () => `M8 10 L102 10 L102 44 L8 44 Z`,
+};
+
+function makeSVG(shape) {
+  const p = (SHAPES[shape] || SHAPES.Rectangle)();
+  return `<svg viewBox="0 0 110 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0"   y1="27" x2="8"   y2="27" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="102" y1="27" x2="110" y2="27" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="${p}" fill="#f0eeea" stroke="#6b6a64" stroke-width="1.5" stroke-linejoin="round"/>
+    <line x1="49" y1="27" x2="61" y2="27" stroke="#bbb" stroke-width="1" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ─── App state ────────────────────────────────────────────────────────────
+let frames = [];
+const sel = { fit: new Set(), shape: new Set(), book: null };
+
+const RANGES = {
+  l: { min:'lmin', max:'lmax', lo:44, hi:60 },
+  b: { min:'bmin', max:'bmax', lo:14, hi:26 },
+  t: { min:'tmin', max:'tmax', lo:130, hi:155 },
+};
+
+// ─── Boot ─────────────────────────────────────────────────────────────────
+async function init() {
+  if (typeof window._loadFrames === 'function') {
+    try {
+      frames = await window._loadFrames();
+      document.getElementById('loc-badge').textContent = 'Firestore · live';
+    } catch(e) {
+      document.getElementById('status-msg').textContent = 'Firestore error: ' + e.message;
+      return;
+    }
+  } else {
+    try {
+      const r = await fetch('./frames.json');
+      if (!r.ok) throw new Error('missing');
+      frames = await r.json();
+      document.getElementById('loc-badge').textContent = 'frames.json';
+    } catch(_) {
+      frames = DEMO;
+      document.getElementById('loc-badge').textContent = 'Demo data';
+    }
+  }
+  buildBooks();
+  doFilter();
+}
+
+// ─── Range helpers ────────────────────────────────────────────────────────
+function syncR(k) {
+  const r = RANGES[k];
+  let mn = +document.getElementById(r.min).value;
+  let mx = +document.getElementById(r.max).value;
+  if (mn > mx) {
+    if (event.target.id === r.min) document.getElementById(r.min).value = mx;
+    else document.getElementById(r.max).value = mn;
+  }
+  document.getElementById(r.min+'-v').textContent = document.getElementById(r.min).value;
+  document.getElementById(r.max+'-v').textContent = document.getElementById(r.max).value;
+}
+function getR(k) { const r=RANGES[k]; return [+document.getElementById(r.min).value, +document.getElementById(r.max).value]; }
+function rangeChanged(k) { const r=RANGES[k]; return +document.getElementById(r.min).value!==r.lo || +document.getElementById(r.max).value!==r.hi; }
+function fitOf(l) { return l<=49?'Narrow':l<=53?'Medium':'Wide'; }
+
+// ─── Chips ────────────────────────────────────────────────────────────────
+function toggleChip(el) {
+  const set = el.dataset.g === 'fit' ? sel.fit : sel.shape;
+  const v = el.textContent.trim();
+  set.has(v) ? (set.delete(v), el.classList.remove('on')) : (set.add(v), el.classList.add('on'));
+  doFilter();
+}
+function toggleBook(el) {
+  const v = el.textContent.trim();
+  document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('on'));
+  sel.book = sel.book === v ? null : v;
+  if (sel.book) el.classList.add('on');
+  doFilter();
+}
+
+function buildBooks() {
+  const books = [...new Set(frames.flatMap(f => f.books||[]))].sort();
+  const el = document.getElementById('book-facet');
+  el.innerHTML = '<div class="facet-title">Style book</div>' +
+    books.map(b => `<button class="book-btn" onclick="toggleBook(this)">${b}</button>`).join('');
+}
+
+// ─── Filter + render ──────────────────────────────────────────────────────
+function doFilter() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const [lMn,lMx] = getR('l'), [bMn,bMx] = getR('b'), [tMn,tMx] = getR('t');
+
+  const res = frames.filter(f => {
+    if (f.lens   < lMn || f.lens   > lMx) return false;
+    if (f.bridge < bMn || f.bridge > bMx) return false;
+    if (f.temple < tMn || f.temple > tMx) return false;
+    if (sel.fit.size   && !sel.fit.has(fitOf(f.lens))) return false;
+    if (sel.shape.size && !sel.shape.has(f.shape))     return false;
+    if (sel.book       && !(f.books||[]).includes(sel.book)) return false;
+    if (q && ![f.name, f.sku, ...(f.colors||[])].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('rcount').textContent = res.length;
+  document.getElementById('status-msg').style.display = 'none';
+  const grid = document.getElementById('grid');
+  grid.style.display = '';
+  grid.innerHTML = res.length
+    ? res.map(f => cardHTML(f, lMn,lMx, bMn,bMx, tMn,tMx)).join('')
+    : '<div class="empty">No frames match these filters.</div>';
+
+  renderTags();
+}
+
+function cardHTML(f, lMn,lMx, bMn,bMx, tMn,tMx) {
+  const lM = f.lens>=lMn && f.lens<=lMx;
+  const bM = f.bridge>=bMn && f.bridge<=bMx;
+  const tM = f.temple>=tMn && f.temple<=tMx;
+  const avail = f.available !== false;
+  return `<div class="card">
+    <div class="frame-art">${makeSVG(f.shape||'Rectangle')}</div>
+    <div class="card-name">${f.name}</div>
+    <div class="card-sku">${f.sku}${f.colors?.length?' · '+f.colors[0]:''}</div>
+    <div class="mm-row">
+      <span class="mm-pill${lM?' match':''}">L ${f.lens}mm</span>
+      <span class="mm-pill${bM?' match':''}">B ${f.bridge}mm</span>
+      <span class="mm-pill${tM?' match':''}">T ${f.temple}mm</span>
+    </div>
+    ${(f.books||[]).length?`<div class="book-tags">${f.books.map(b=>`<span class="book-tag">${b}</span>`).join('')}</div>`:''}
+    <div class="avail-row">
+      <span class="dot ${avail?'g':'a'}"></span>
+      ${avail?`In store · ${f.units??0} units`:'On order'}
+    </div>
+  </div>`;
+}
+
+// ─── Active filter pills ──────────────────────────────────────────────────
+let _clears = [];
+function renderTags() {
+  const tags = [];
+  if (rangeChanged('l')) { const [a,b]=getR('l'); tags.push({ label:`Lens ${a}–${b}mm`, clear(){document.getElementById('lmin').value=44;document.getElementById('lmax').value=60;syncR('l');} }); }
+  if (rangeChanged('b')) { const [a,b]=getR('b'); tags.push({ label:`Bridge ${a}–${b}mm`, clear(){document.getElementById('bmin').value=14;document.getElementById('bmax').value=26;syncR('b');} }); }
+  if (rangeChanged('t')) { const [a,b]=getR('t'); tags.push({ label:`Temple ${a}–${b}mm`, clear(){document.getElementById('tmin').value=130;document.getElementById('tmax').value=155;syncR('t');} }); }
+  sel.fit.forEach(v   => tags.push({ label:v, clear(){ sel.fit.delete(v);   document.querySelectorAll('[data-g=fit]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on')); } }));
+  sel.shape.forEach(v => tags.push({ label:v, clear(){ sel.shape.delete(v); document.querySelectorAll('[data-g=shape]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on')); } }));
+  if (sel.book) tags.push({ label:sel.book, clear(){ sel.book=null; document.querySelectorAll('.book-btn').forEach(b=>b.classList.remove('on')); } });
+  _clears = tags.map(t=>t.clear);
+  document.getElementById('atags').innerHTML = tags.map((t,i)=>
+    `<span class="atag">${t.label}<button onclick="rmTag(${i})">×</button></span>`).join('');
+}
+function rmTag(i) { _clears[i](); doFilter(); }
+
+function clearAll() {
+  document.getElementById('q').value = '';
+  Object.entries(RANGES).forEach(([k,r]) => {
+    document.getElementById(r.min).value = r.lo; document.getElementById(r.max).value = r.hi;
+    document.getElementById(r.min+'-v').textContent = r.lo; document.getElementById(r.max+'-v').textContent = r.hi;
+  });
+  document.querySelectorAll('.chip,.book-btn').forEach(c=>c.classList.remove('on'));
+  sel.fit.clear(); sel.shape.clear(); sel.book=null;
+  doFilter();
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────
+function openModal()  { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('fmsg').textContent=''; }
+
+async function submitFrame() {
+  const msg = document.getElementById('fmsg');
+  const frame = {
+    name:      document.getElementById('f-name').value.trim(),
+    sku:       document.getElementById('f-sku').value.trim(),
+    colors:    document.getElementById('f-colors').value.split(',').map(s=>s.trim()).filter(Boolean),
+    lens:      +document.getElementById('f-lens').value,
+    bridge:    +document.getElementById('f-bridge').value,
+    temple:    +document.getElementById('f-temple').value,
+    shape:     document.getElementById('f-shape').value,
+    books:     document.getElementById('f-books').value.split(',').map(s=>s.trim()).filter(Boolean),
+    available: document.getElementById('f-avail').value === 'true',
+    units:     +document.getElementById('f-units').value,
+  };
+  if (!frame.name || !frame.sku) { msg.className='form-msg err'; msg.textContent='Name and SKU are required.'; return; }
+
+  if (typeof window._saveFrame === 'function') {
+    try {
+      await window._saveFrame(frame);
+      frames.push(frame);
+      buildBooks(); doFilter();
+      msg.className='form-msg ok'; msg.textContent='Saved to Firestore ✓';
+      setTimeout(closeModal, 1200);
+    } catch(e) { msg.className='form-msg err'; msg.textContent='Error: '+e.message; }
+  } else {
+    frames.push(frame);
+    buildBooks(); doFilter();
+    msg.className='form-msg ok'; msg.textContent='Added for this session (connect Firestore to persist).';
+    setTimeout(closeModal, 1600);
+  }
+}
+
+// ─── Demo data (used when no frames.json and no Firestore) ────────────────
+const DEMO = [
+  { name:"Percey",   sku:"OPT-1042", lens:51, bridge:18, temple:145, shape:"Rectangle", colors:["Jet Black","Whiskey Tortoise"],   books:["Rectangle Book","Heritage Book"],      available:true,  units:4 },
+  { name:"Durand",   sku:"OPT-2210", lens:47, bridge:20, temple:140, shape:"Round",     colors:["Whiskey Tortoise","Burnt Lemon"], books:["Oval & Round Book","Heritage Book"],    available:true,  units:6 },
+  { name:"Haskell",  sku:"OPT-0881", lens:54, bridge:17, temple:145, shape:"Rectangle", colors:["Striped Bottle","Black Matte"],   books:["Rectangle Book","Back to School"],     available:false, units:0 },
+  { name:"Crane",    sku:"OPT-3304", lens:49, bridge:21, temple:148, shape:"Cat-eye",   colors:["Rose Water","Desert Khaki"],      books:["Summer Sun Book"],                     available:true,  units:3 },
+  { name:"Fillmore", sku:"OPT-0556", lens:48, bridge:19, temple:145, shape:"Square",    colors:["Jet Black","Striped Bottle"],     books:["Rectangle Book"],                     available:true,  units:2 },
+  { name:"Tatum",    sku:"OPT-4411", lens:50, bridge:16, temple:135, shape:"Cat-eye",   colors:["Rose Water","Jet Black"],         books:["Summer Sun Book","Back to School"],    available:true,  units:5 },
+  { name:"Winston",  sku:"OPT-0019", lens:53, bridge:20, temple:150, shape:"Rectangle", colors:["Whiskey Tortoise","Burnt Olive"], books:["Rectangle Book","Heritage Book"],      available:false, units:0 },
+  { name:"Toile",    sku:"OPT-2897", lens:52, bridge:18, temple:143, shape:"Oval",      colors:["Burnt Lemon","Cinnamon"],         books:["Oval & Round Book","Summer Sun Book"], available:true,  units:3 },
+  { name:"Tate",     sku:"OPT-3310", lens:46, bridge:22, temple:140, shape:"Round",     colors:["Earthy Slate","Kelp"],            books:["Oval & Round Book"],                   available:true,  units:2 },
+  { name:"Aldous",   sku:"OPT-5501", lens:55, bridge:18, temple:148, shape:"Rectangle", colors:["Matte Black","Slate Crystal"],   books:["Heritage Book","Back to School"],      available:true,  units:4 },
+  { name:"Piper",    sku:"OPT-6612", lens:50, bridge:19, temple:140, shape:"Cat-eye",   colors:["Rosewood","Champagne Crystal"],   books:["Summer Sun Book"],                     available:true,  units:3 },
+  { name:"Colby",    sku:"OPT-7723", lens:52, bridge:17, temple:145, shape:"Square",    colors:["Jet Black","Bark Crystal"],      books:["Rectangle Book"],                     available:false, units:0 },
+];
+
+init();
+
+// ─── Password gate ────────────────────────────────────────────────────────
+// Change 'frames2026' below to whatever password you want to use
+const GATE_PW = 'frames2026';
+const SESSION_KEY = 'wp_fs_auth';
+
+function checkPw() {
+  const val = document.getElementById('gate-pw').value.trim();
+  if (val === GATE_PW) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('gate').classList.add('hidden');
+  } else {
+    const err = document.getElementById('gate-err');
+    err.textContent = 'Incorrect — try again.';
+    document.getElementById('gate-pw').value = '';
+    document.getElementById('gate-pw').focus();
+    setTimeout(() => err.textContent = '', 2500);
+  }
+}
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('gate').classList.add('hidden');
+}
+</script>
+</body>
+</html>
