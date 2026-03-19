@@ -3,593 +3,788 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WP Frame Search · Internal</title>
+<title>Mallory Odom — Sr. PM, Catalog & Merchandising · Warby Parker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #f5f4f0;
-    --surface:  #ffffff;
-    --border:   #e2e0d8;
-    --border-md:#c8c6bc;
-    --text:     #1a1a18;
-    --muted:    #6b6a64;
-    --hint:     #9e9d96;
-    --blue-bg:  #e8f0fb;
-    --blue-txt: #1a4a8a;
-    --blue-bdr: #b3c9ee;
-    --green-bg: #e8f4e8;
-    --green-txt:#1e5e1e;
-    --green-bdr:#a8d4a8;
-    --amber-bg: #fdf3dc;
-    --amber-txt:#7a4f00;
-    --amber-bdr:#e8c96a;
-    --red-bg:   #fdecea;
-    --red-txt:  #8a1a1a;
-    --radius:   8px;
-    --radius-lg:12px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 14px;
-    color: var(--text);
+    /* Warby Parker brand palette */
+    --navy:      #00263A;
+    --navy-md:   #003D5C;
+    --navy-lt:   #E8EFF4;
+    --sky:       #0077B6;
+    --sky-lt:    #DCF0FA;
+    --cream:     #F9F6F1;
+    --warm:      #F2EDE6;
+    --white:     #FFFFFF;
+    --ink:       #1A1A1A;
+    --muted:     #5C5C5C;
+    --hint:      #9E9E9E;
+    --border:    #E0D9D0;
+    --border-lt: #EDE8E0;
+    --copper:    #0077B6;
+    --copper-lt: #DCF0FA;
+    --serif:     'Libre Baskerville', Georgia, serif;
+    --sans:      'Jost', system-ui, sans-serif;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); min-height: 100vh; }
-
-  .topbar {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 20px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 10;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
-  .logo { font-size: 13px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
-  .logo-sep { color: var(--hint); margin: 0 4px; }
-  .search-wrap { flex: 1; position: relative; max-width: 480px; }
-  .search-wrap input {
-    width: 100%; padding: 8px 12px 8px 34px;
-    font-size: 13px; border: 1px solid var(--border);
-    border-radius: var(--radius); background: var(--bg); color: var(--text);
-    transition: border-color .15s;
+
+  /* ANIMATIONS */
+  .reveal {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity .65s ease, transform .65s ease;
   }
-  .search-wrap input:focus { outline: none; border-color: var(--blue-bdr); background: var(--surface); }
-  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: .4; pointer-events: none; }
-  .loc-badge { font-size: 11px; padding: 4px 10px; background: var(--blue-bg); color: var(--blue-txt); border: 1px solid var(--blue-bdr); border-radius: 20px; white-space: nowrap; }
-  .admin-toggle { font-size: 12px; padding: 6px 12px; background: var(--surface); color: var(--muted); border: 1px solid var(--border-md); border-radius: var(--radius); cursor: pointer; white-space: nowrap; }
-  .admin-toggle:hover { background: var(--bg); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
 
-  .app-body { display: flex; height: calc(100vh - 45px); overflow: hidden; }
-
-  /* SIDEBAR */
-  .sidebar {
-    width: 210px; min-width: 210px; padding: 16px 14px; overflow-y: auto;
-    background: var(--surface); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; gap: 20px;
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 48px;
+    background: rgba(249,246,241,.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-lt);
   }
-  .facet-title { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--hint); margin-bottom: 8px; }
-  .range-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-  .range-row label { font-size: 11px; color: var(--muted); min-width: 26px; }
-  .range-row input[type=range] { flex: 1; accent-color: var(--blue-txt); }
-  .range-val { font-size: 12px; font-weight: 600; color: var(--text); min-width: 30px; text-align: right; }
-  .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
-  .chip {
-    font-size: 11px; padding: 3px 9px; border: 1px solid var(--border-md); border-radius: 20px;
-    cursor: pointer; color: var(--muted); background: transparent; transition: all .12s; white-space: nowrap;
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
   }
-  .chip:hover { background: var(--bg); }
-  .chip.on { background: var(--blue-bg); border-color: var(--blue-bdr); color: var(--blue-txt); font-weight: 500; }
-  .book-btn {
-    width: 100%; text-align: left; font-size: 12px; padding: 5px 9px;
-    border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;
-    color: var(--muted); background: transparent; transition: all .12s; margin-bottom: 4px; display: block;
-  }
-  .book-btn:hover { background: var(--bg); }
-  .book-btn.on { background: var(--amber-bg); border-color: var(--amber-bdr); color: var(--amber-txt); font-weight: 500; }
-  .clear-link { font-size: 11px; color: var(--hint); background: none; border: none; cursor: pointer; padding: 0; text-align: left; }
-  .clear-link:hover { color: var(--muted); }
-
-  /* RESULTS */
-  .results-pane { flex: 1; overflow-y: auto; padding: 16px 18px; }
-  .results-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  .results-count { font-size: 13px; color: var(--muted); white-space: nowrap; }
-  .results-count strong { color: var(--text); }
-  .active-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-  .atag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; background: var(--surface); border: 1px solid var(--border-md); border-radius: 20px; color: var(--muted); }
-  .atag button { border: none; background: none; font-size: 14px; line-height: 1; cursor: pointer; color: var(--hint); padding: 0; }
-  .atag button:hover { color: var(--text); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
-  .empty { text-align: center; padding: 60px 20px; color: var(--hint); font-size: 13px; grid-column: 1/-1; }
-  #status-msg { padding: 60px; text-align: center; color: var(--hint); font-size: 13px; }
-
-  /* FRAME CARD */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 13px; transition: border-color .15s, box-shadow .15s; }
-  .card:hover { border-color: var(--border-md); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-  .frame-art { height: 54px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-  .frame-art svg { width: 100%; height: 54px; overflow: visible; }
-  .card-name { font-size: 13px; font-weight: 600; margin-bottom: 1px; }
-  .card-sku { font-size: 11px; color: var(--hint); margin-bottom: 8px; }
-  .mm-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 7px; }
-  .mm-pill { font-size: 10px; padding: 2px 7px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); transition: all .12s; }
-  .mm-pill.match { background: var(--green-bg); border-color: var(--green-bdr); color: var(--green-txt); font-weight: 500; }
-  .book-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
-  .book-tag { font-size: 10px; padding: 2px 6px; background: var(--amber-bg); border-radius: 4px; color: var(--amber-txt); }
-  .avail-row { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--border); }
-  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .dot.g { background: #2e7d32; } .dot.a { background: #b45309; }
-
-  /* MODAL */
-  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 100; align-items: center; justify-content: center; }
-  .modal-bg.open { display: flex; }
-  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border); }
-  .modal h2 { font-size: 15px; margin-bottom: 16px; }
-  .modal label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; }
-  .modal input, .modal select { width: 100%; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border-md); border-radius: var(--radius); background: var(--bg); color: var(--text); }
-  .modal input:focus, .modal select:focus { outline: none; border-color: var(--blue-bdr); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-  .btn { padding: 8px 16px; font-size: 13px; border-radius: var(--radius); border: 1px solid var(--border-md); cursor: pointer; font-weight: 500; background: transparent; color: var(--muted); }
-  .btn:hover { background: var(--bg); }
-  .btn-primary { background: var(--blue-bg); color: var(--blue-txt); border-color: var(--blue-bdr); }
-  .btn-primary:hover { background: #d4e6f8; }
-  .form-msg { font-size: 12px; margin-top: 8px; min-height: 18px; }
-  .form-msg.ok { color: var(--green-txt); } .form-msg.err { color: var(--red-txt); }
-
-  /* PASSWORD GATE */
-  #gate {
-    position: fixed; inset: 0; z-index: 999;
-    background: #00263A;
+  .nav-logo-mark {
+    width: 28px; height: 28px;
+    background: var(--navy);
+    border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
   }
-  #gate.hidden { display: none; }
-  .gate-logo {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 13px; font-weight: 600; letter-spacing: .06em;
-    color: rgba(255,255,255,.9); margin-bottom: 36px;
+  .nav-logo-mark svg { width: 14px; height: 14px; }
+  .nav-name {
+    font-family: var(--serif);
+    font-size: 14px; font-weight: 400;
+    color: var(--ink); letter-spacing: .01em;
   }
-  .gate-logo span { color: rgba(255,255,255,.35); margin: 0 6px; }
-  .gate-box {
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 8px; padding: 32px 36px;
-    width: 320px; display: flex; flex-direction: column; gap: 12px;
-  }
-  .gate-label {
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a {
     font-size: 11px; font-weight: 500; letter-spacing: .1em;
-    text-transform: uppercase; color: rgba(255,255,255,.4);
+    text-transform: uppercase; color: var(--muted);
+    text-decoration: none; transition: color .15s;
   }
-  .gate-input {
-    width: 100%; padding: 10px 14px;
-    background: rgba(255,255,255,.08);
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: 4px; color: white;
-    font-size: 14px; letter-spacing: .12em;
-    outline: none; transition: border-color .15s;
+  .nav-links a:hover { color: var(--navy); }
+  .nav-cta {
+    font-size: 11px !important; font-weight: 600 !important;
+    padding: 8px 18px; letter-spacing: .08em !important;
+    background: var(--navy) !important;
+    color: var(--white) !important;
+    border-radius: 2px; transition: background .15s !important;
   }
-  .gate-input:focus { border-color: rgba(255,255,255,.4); }
-  .gate-input::placeholder { color: rgba(255,255,255,.25); letter-spacing: .04em; }
-  .gate-btn {
-    width: 100%; padding: 10px;
-    background: rgba(255,255,255,.12);
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 4px; color: white;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: background .15s; letter-spacing: .04em;
+  .nav-cta:hover { background: var(--navy-md) !important; }
+
+  /* HERO */
+  .hero {
+    padding: 100px 48px 88px;
+    max-width: 1120px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 64px; align-items: start;
   }
-  .gate-btn:hover { background: rgba(255,255,255,.2); }
-  .gate-error {
-    font-size: 12px; color: #f4a5a5;
-    text-align: center; min-height: 18px;
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--sky);
+    margin-bottom: 22px;
+    display: flex; align-items: center; gap: 12px;
   }
-  .gate-hint {
-    font-size: 11px; color: rgba(255,255,255,.2);
-    text-align: center; margin-top: 8px;
+  .hero-eyebrow::before {
+    content: ''; display: block;
+    width: 28px; height: 1px; background: var(--sky);
+  }
+  h1.hero-headline {
+    font-family: var(--serif);
+    font-size: clamp(40px, 5vw, 68px);
+    font-weight: 400; line-height: 1.06;
+    letter-spacing: -.02em; color: var(--navy);
+    margin-bottom: 28px;
+  }
+  h1.hero-headline em { font-style: italic; color: var(--copper); }
+  .hero-body {
+    font-size: 17px; font-weight: 300;
+    color: var(--muted); line-height: 1.75;
+    max-width: 520px; margin-bottom: 36px;
+  }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 500; letter-spacing: .04em;
+    color: var(--navy); text-decoration: none;
+    border-bottom: 1.5px solid var(--navy);
+    padding-bottom: 2px; transition: gap .2s, color .15s;
+  }
+  .hero-cta:hover { gap: 14px; color: var(--sky); border-color: var(--sky); }
+  .hero-meta {
+    background: var(--navy);
+    border-radius: 4px; padding: 28px;
+    margin-top: 16px;
+  }
+  .hero-meta-label {
+    font-size: 9px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+    margin-bottom: 20px;
+  }
+  .hero-meta-item {
+    margin-bottom: 18px; padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .hero-meta-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .hero-meta-key {
+    font-size: 9px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.4); margin-bottom: 4px;
+  }
+  .hero-meta-val {
+    font-size: 13px; color: rgba(255,255,255,.85); font-weight: 300; line-height: 1.5;
+  }
+  .hero-meta-val a { color: #7ABFE0; text-decoration: none; }
+  .hero-meta-val a:hover { text-decoration: underline; }
+
+  /* SECTION SHELL */
+  section { padding: 88px 48px; }
+  .section-inner { max-width: 1120px; margin: 0 auto; }
+  .section-eyebrow {
+    font-size: 10px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--sky);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-eyebrow::before {
+    content: attr(data-n);
+    font-family: var(--serif);
+    font-size: 12px; font-style: italic;
+    color: var(--hint);
+  }
+  h2.section-headline {
+    font-family: var(--serif);
+    font-size: clamp(28px, 3.2vw, 44px);
+    font-weight: 400; line-height: 1.12;
+    letter-spacing: -.02em; color: var(--navy);
+    margin-bottom: 20px; max-width: 620px;
+  }
+  .section-body {
+    font-size: 16px; font-weight: 300;
+    color: var(--muted); line-height: 1.8;
+    max-width: 580px; margin-bottom: 52px;
+  }
+  hr.divider { border: none; border-top: 1px solid var(--border-lt); }
+
+  /* PROBLEM CARDS */
+  .problem-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px; margin-top: 0;
+  }
+  .pcard {
+    background: var(--white);
+    border: 1px solid var(--border-lt);
+    border-radius: 4px; padding: 28px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .pcard:hover { border-color: var(--border); box-shadow: 0 4px 20px rgba(0,38,58,.06); }
+  .pcard-icon {
+    width: 34px; height: 34px; border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .pcard-icon.navy { background: var(--navy-lt); }
+  .pcard-icon.sky  { background: var(--sky-lt); }
+  .pcard-icon.warm { background: var(--copper-lt); }
+  .pcard h3 {
+    font-family: var(--serif);
+    font-size: 17px; font-weight: 400; line-height: 1.25;
+    color: var(--navy); margin-bottom: 10px;
+  }
+  .pcard p {
+    font-size: 14px; font-weight: 300;
+    color: var(--muted); line-height: 1.7;
+  }
+
+  /* DIAGRAM */
+  .diagram-section {
+    background: var(--navy);
+    border-top: none; border-bottom: none;
+  }
+  .diagram-section .section-eyebrow { color: #7ABFE0; }
+  .diagram-section .section-eyebrow::before { color: rgba(255,255,255,.25); }
+  .diagram-section h2.section-headline { color: var(--white); }
+  .diagram-section .section-body { color: rgba(255,255,255,.75); }
+  .diagram-wrap {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 4px; padding: 40px 32px;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; margin: 0 auto; }
+  .diagram-caption {
+    margin-top: 20px; font-size: 13px; font-weight: 300;
+    color: rgba(255,255,255,.65);
+    text-align: center; font-style: italic;
+  }
+
+  /* DEMO */
+  .demo-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 56px; align-items: center;
+  }
+  .demo-copy h3 {
+    font-family: var(--serif);
+    font-size: 28px; font-weight: 400; line-height: 1.2;
+    color: var(--navy); margin-bottom: 14px;
+  }
+  .demo-copy p {
+    font-size: 15px; font-weight: 300;
+    color: var(--muted); line-height: 1.75; margin-bottom: 20px;
+  }
+  .demo-copy ul { list-style: none; margin-bottom: 32px; }
+  .demo-copy li {
+    font-size: 14px; color: var(--muted); font-weight: 300;
+    padding: 8px 0; border-bottom: 1px solid var(--border-lt);
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .demo-copy li::before { content: '→'; color: var(--sky); font-size: 12px; flex-shrink: 0; }
+  .demo-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 500; letter-spacing: .04em;
+    padding: 11px 22px;
+    background: var(--navy); color: var(--white);
+    border-radius: 2px; text-decoration: none;
+    transition: background .15s, gap .2s;
+  }
+  .demo-link:hover { background: var(--navy-md); gap: 14px; }
+  .demo-preview {
+    background: var(--white);
+    border: 1px solid var(--border-lt);
+    border-radius: 4px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,38,58,.1);
+  }
+  .dp-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 14px; background: #F0EDE8;
+    border-bottom: 1px solid var(--border-lt);
+  }
+  .dp-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dp-dot.r{background:#ff5f57}.dp-dot.y{background:#febc2e}.dp-dot.g{background:#28c840}
+  .dp-url {
+    flex: 1; text-align: center; font-size: 10px; color: var(--muted);
+    background: var(--white); border: 1px solid var(--border-lt);
+    border-radius: 3px; padding: 3px 10px; font-family: var(--sans);
+  }
+  .dp-body { padding: 14px; }
+  .dp-topbar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; background: var(--white);
+    border: 1px solid var(--border-lt); border-radius: 3px; margin-bottom: 10px;
+  }
+  .dp-logo { font-size: 10px; font-weight: 600; color: var(--navy); white-space: nowrap; font-family: var(--sans); }
+  .dp-search { flex: 1; height: 22px; background: var(--cream); border: 1px solid var(--border-lt); border-radius: 3px; }
+  .dp-badge { font-size: 9px; padding: 2px 7px; background: var(--navy-lt); color: var(--navy); border-radius: 2px; white-space: nowrap; }
+  .dp-layout { display: flex; gap: 10px; }
+  .dp-sb { width: 68px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+  .dp-fl { height: 6px; background: var(--border-lt); border-radius: 2px; }
+  .dp-fl.w{width:100%}.dp-fl.m{width:70%}.dp-fl.s{width:50%}
+  .dp-fl.navy-tint { background: var(--navy-lt); }
+  .dp-fg { display: flex; flex-direction: column; gap: 4px; }
+  .dp-book { height: 13px; width: 100%; border-radius: 2px; background: #FDF0E4; border: 1px solid #E8C2A0; }
+  .dp-cards { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .dp-card { background: var(--white); border: 1px solid var(--border-lt); border-radius: 3px; padding: 7px; }
+  .dp-card-img { height: 22px; background: var(--warm); border-radius: 2px; margin-bottom: 5px; }
+  .dp-ln { height: 5px; background: var(--border-lt); border-radius: 2px; margin-bottom: 3px; }
+  .dp-ln.m{width:65%}
+  .dp-pills { display: flex; gap: 2px; margin-top: 4px; }
+  .dp-pill { height: 6px; width: 22px; background: #DCF0FA; border-radius: 10px; }
+  .dp-pill.g { background: #D4EDDA; }
+
+  /* ROADMAP */
+  .roadmap-section { background: var(--white); }
+  .roadmap-section h2.section-headline { color: var(--navy); }
+  .roadmap-section .section-body { color: var(--muted); }
+  .rt-wrap {
+    border: 1px solid var(--border-lt);
+    border-radius: 4px; overflow: hidden;
+  }
+  .rt {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px; font-family: var(--sans);
+  }
+  .rt th {
+    padding: 13px 18px;
+    background: var(--navy); text-align: left;
+    font-size: 9px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.5);
+    border-bottom: none;
+  }
+  .rt td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-lt);
+    vertical-align: middle; color: var(--ink);
+  }
+  .rt tr:last-child td { border-bottom: none; }
+  .rt tr:hover td { background: var(--cream); }
+  .rt-num {
+    font-family: var(--serif); font-size: 13px;
+    font-style: italic; color: var(--hint); width: 36px;
+  }
+  .rt-name { font-weight: 400; color: var(--navy); font-size: 14px; }
+  .rt-desc {
+    font-size: 12px; color: var(--muted); font-weight: 300;
+    margin-top: 3px; line-height: 1.5;
+  }
+  .rt-score {
+    font-family: var(--serif); font-size: 13px;
+    font-style: italic; color: var(--sky);
+    white-space: nowrap; text-align: center;
+  }
+  .rt-q {
+    font-size: 10px; font-weight: 500; letter-spacing: .06em;
+    padding: 3px 9px; border-radius: 2px;
+    background: var(--navy-lt); color: var(--navy);
+    white-space: nowrap; display: inline-block;
+  }
+  .rt-status {
+    font-size: 10px; font-weight: 500; padding: 3px 9px;
+    border-radius: 2px; white-space: nowrap; letter-spacing: .03em;
+    display: inline-block;
+  }
+  .rt-status.active   { background: #D4EDDA; color: #155724; }
+  .rt-status.doc      { background: var(--navy-lt); color: var(--navy); }
+  .rt-status.research { background: var(--copper-lt); color: var(--copper); }
+  .rt-status.sched    { background: #F0EDE8; color: var(--muted); }
+  .rt-note {
+    margin-top: 20px; font-size: 12px; font-weight: 300;
+    color: var(--hint); font-style: italic;
+  }
+  .rt-note a { color: var(--sky); text-decoration: none; }
+
+  /* CLOSING */
+  .closing { background: var(--warm); border-top: 1px solid var(--border-lt); }
+  .closing-inner {
+    max-width: 1120px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: start;
+  }
+  .closing-left h2 { max-width: 100% !important; }
+  .closing-left p {
+    font-size: 16px; font-weight: 300;
+    color: var(--muted); line-height: 1.8; margin-bottom: 16px;
+  }
+  .closing-right { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+  .citem {
+    display: flex; flex-direction: column;
+    padding: 18px 20px;
+    background: var(--white);
+    border: 1px solid var(--border-lt); border-radius: 4px;
+    text-decoration: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .citem:hover { border-color: var(--sky); box-shadow: 0 4px 16px rgba(0,119,182,.1); }
+  .citem-key { font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--hint); margin-bottom: 4px; }
+  .citem-val { font-size: 14px; color: var(--ink); font-weight: 400; }
+
+  /* FOOTER */
+  footer {
+    padding: 22px 48px;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: rgba(255,255,255,.6);
+    font-family: var(--sans);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 920px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 60px 20px 50px; gap: 40px; }
+    .hero-meta { display: none; }
+    section { padding: 60px 20px; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .demo-grid { grid-template-columns: 1fr; }
+    .demo-preview { display: none; }
+    .closing-inner { grid-template-columns: 1fr; gap: 40px; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
   }
 </style>
 </head>
 <body>
 
-<!-- PASSWORD GATE -->
-<div id="gate">
-  <div class="gate-logo">WP<span>|</span>Frame Search</div>
-  <div class="gate-box">
-    <div class="gate-label">Access code</div>
-    <input class="gate-input" type="password" id="gate-pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPw()">
-    <button class="gate-btn" onclick="checkPw()">Continue →</button>
-    <div class="gate-error" id="gate-err"></div>
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 14 14" fill="none">
+        <circle cx="4" cy="7" r="3" stroke="white" stroke-width="1.2"/>
+        <circle cx="10" cy="7" r="3" stroke="white" stroke-width="1.2"/>
+        <line x1="7" y1="7" x2="7" y2="7" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="nav-name">Mallory Odom</span>
+  </a>
+  <div class="nav-links">
+    <a href="#problem">The problem</a>
+    <a href="#solution">The solution</a>
+    <a href="#demo">Proof of concept</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="mailto:YOUREMAIL@gmail.com" class="nav-cta">Get in touch →</a>
   </div>
-  <div class="gate-hint">Shared by Mallory Odom · Portfolio prototype</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow reveal">Sr. PM, Catalog &amp; Merchandising Systems · Warby Parker</div>
+    <h1 class="hero-headline reveal" style="transition-delay:.08s">
+      I see what's missing —<br><em>because I work around it<br>every day.</em>
+    </h1>
+    <p class="hero-body reveal" style="transition-delay:.16s">
+      The product attributes are there — on every PDP. It's just not structured, not activated, and not talking to the systems that need it most.
+    </p>
+    <a href="#problem" class="hero-cta reveal" style="transition-delay:.24s">See the thinking ↓</a>
+  </div>
+  <div class="hero-meta reveal" style="transition-delay:.28s">
+    <div class="hero-meta-label">About this application</div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-key">Applying for</div>
+      <div class="hero-meta-val">Senior Product Manager,<br>Catalog &amp; Merchandising Systems</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-key">Current role</div>
+      <div class="hero-meta-val">Sales Supervisor, WP Washington Square · Portland</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-key">Background</div>
+      <div class="hero-meta-val">7+ yrs PM · Interoperability, Platform &amp; Internal Tooling, B2B SaaS</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-key">Proof of concept</div>
+      <div class="hero-meta-val"><a href="https://modom1123.github.io/wp-frame-search/" target="_blank">Frame search demo ↗</a></div>
+    </div>
+  </div>
 </div>
 
-<div class="topbar">
-  <div class="logo">WP<span class="logo-sep">|</span>Frame Search</div>
-  <div class="search-wrap">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="6.5" cy="6.5" r="5.5"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5"/>
-    </svg>
-    <input type="text" id="q" placeholder="Name, SKU, or color…" oninput="doFilter()">
-  </div>
-  <div class="loc-badge" id="loc-badge">Loading…</div>
-  <button class="admin-toggle" onclick="openModal()">+ Add frame</button>
-</div>
+<hr class="divider">
 
-<div class="app-body">
-  <div class="sidebar">
-
-    <div>
-      <div class="facet-title">Lens width (mm)</div>
-      <div class="range-row"><label>min</label><input type="range" id="lmin" min="44" max="60" value="44" step="1" oninput="syncR('l');doFilter()"><span class="range-val" id="lmin-v">44</span></div>
-      <div class="range-row"><label>max</label><input type="range" id="lmax" min="44" max="60" value="60" step="1" oninput="syncR('l');doFilter()"><span class="range-val" id="lmax-v">60</span></div>
-    </div>
-
-    <div>
-      <div class="facet-title">Bridge (mm)</div>
-      <div class="range-row"><label>min</label><input type="range" id="bmin" min="14" max="26" value="14" step="1" oninput="syncR('b');doFilter()"><span class="range-val" id="bmin-v">14</span></div>
-      <div class="range-row"><label>max</label><input type="range" id="bmax" min="14" max="26" value="26" step="1" oninput="syncR('b');doFilter()"><span class="range-val" id="bmax-v">26</span></div>
-    </div>
-
-    <div>
-      <div class="facet-title">Temple length (mm)</div>
-      <div class="range-row"><label>min</label><input type="range" id="tmin" min="130" max="155" value="130" step="1" oninput="syncR('t');doFilter()"><span class="range-val" id="tmin-v">130</span></div>
-      <div class="range-row"><label>max</label><input type="range" id="tmax" min="130" max="155" value="155" step="1" oninput="syncR('t');doFilter()"><span class="range-val" id="tmax-v">155</span></div>
-    </div>
-
-    <div>
-      <div class="facet-title">Fit</div>
-      <div class="chip-row">
-        <button class="chip" data-g="fit" onclick="toggleChip(this)">Narrow</button>
-        <button class="chip" data-g="fit" onclick="toggleChip(this)">Medium</button>
-        <button class="chip" data-g="fit" onclick="toggleChip(this)">Wide</button>
+<!-- SECTION 1: PROBLEM -->
+<section id="problem">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" data-n="01 ·">The gap I see from where I stand</div>
+    <h2 class="section-headline reveal" style="transition-delay:.06s">The data exists. It's just not activated.</h2>
+    <p class="section-body reveal" style="transition-delay:.12s">
+      Frame attributes — measurements, collection, material, shape, size — live on every product, but they aren't available in a consolidated location. They're stored inconsistently, not structured as typed fields, and not flowing to the systems that need them. That single gap breaks five downstream use cases simultaneously.
+    </p>
+    <div class="problem-grid">
+      <div class="pcard reveal" style="transition-delay:.1s">
+        <div class="pcard-icon navy">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00263A" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <h3>Store search can't filter by fit</h3>
+        <p>Associates type "narrow" and get keyword results. With integer mm fields, they'd drag a lens-width slider to 44–49 and see every frame that physically fits — regardless of what the name says. Style book tags would become a sidebar filter, not a mental lookup.</p>
+      </div>
+      <div class="pcard reveal" style="transition-delay:.15s">
+        <div class="pcard-icon sky">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h3>Attributes scattered across systems</h3>
+        <p>Collection, material, shape, and available sizes live in different places — sometimes a spreadsheet, sometimes a field that was added ad hoc. Without a canonical data model, every team maintains their own version of truth and they all drift.</p>
+      </div>
+      <div class="pcard reveal" style="transition-delay:.2s">
+        <div class="pcard-icon warm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C46B2A" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3>AI search gets nothing to index</h3>
+        <p>Google SGE and ChatGPT shopping surface products via <code style="font-size:11px;background:var(--copper-lt);padding:1px 4px;border-radius:2px">schema.org additionalProperty</code> structured fields. Without a clean data model publishing those fields, there's no AI search strategy — just hope. And this isn't hypothetical: customers are already asking ChatGPT to generate frame options for them. If our attributes aren't structured and published, we don't show up.</p>
       </div>
     </div>
+  </div>
+</section>
 
-    <div>
-      <div class="facet-title">Shape</div>
-      <div class="chip-row" id="shape-chips">
-        <button class="chip" data-g="shape" onclick="toggleChip(this)">Rectangle</button>
-        <button class="chip" data-g="shape" onclick="toggleChip(this)">Round</button>
-        <button class="chip" data-g="shape" onclick="toggleChip(this)">Cat-eye</button>
-        <button class="chip" data-g="shape" onclick="toggleChip(this)">Oval</button>
-        <button class="chip" data-g="shape" onclick="toggleChip(this)">Square</button>
+<hr class="divider">
+
+<!-- SECTION 2: SOLUTION / DIAGRAM -->
+<section id="solution" class="diagram-section">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" data-n="02 ·">How I'd solve it</div>
+    <h2 class="section-headline reveal" style="transition-delay:.06s">Pull once. Activate everywhere.</h2>
+    <p class="section-body reveal" style="transition-delay:.12s">
+      A CDP + tag manager layer captures structured frame attribute data from the website once and routes it to every downstream consumer — store search, Looker, schema.org, AI indexing — from a single source. The Frame Attribute Data Model v2 is the foundation that makes all of it possible. Critically, this architecture lets each team digest the KPIs most relevant to their goals: merchandising sees assortment gaps by fit tier, retail ops sees in-store availability and book coverage, e-commerce sees search conversion by attribute, and finance sees revenue by collection. One data pipeline, purpose-built outputs.
+    </p>
+
+    <div class="diagram-wrap reveal" style="transition-delay:.16s">
+      <svg width="100%" viewBox="0 0 800 430" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="'Jost', sans-serif">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- Frame measurements -->
+        <rect x="60" y="28" width="240" height="76" rx="4" fill="rgba(0,119,182,.18)" stroke="rgba(122,191,224,.4)" stroke-width="1"/>
+        <text x="180" y="56" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="15" fill="white">Frame attributes</text>
+        <text x="180" y="74" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.85)">measurements: lens · bridge · temple</text>
+        <text x="180" y="90" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.85)">collection · material · shape · sizes</text>
+
+        <!-- Style book tags -->
+        <rect x="500" y="28" width="240" height="72" rx="4" fill="rgba(196,107,42,.18)" stroke="rgba(196,107,42,.4)" stroke-width="1"/>
+        <text x="620" y="56" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="15" fill="white">Style book tags</text>
+        <text x="620" y="78" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.85)">string[] · multi-value array</text>
+        <text x="620" y="93" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.85)">rectangle book · heritage book…</text>
+
+        <!-- Connector lines to CDP -->
+        <path d="M180 100 L180 144 L350 144 L350 170" stroke="rgba(255,255,255,.2)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <path d="M620 100 L620 144 L450 144 L450 170" stroke="rgba(255,255,255,.2)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+        <!-- CDP -->
+        <rect x="240" y="170" width="320" height="68" rx="4" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+        <text x="400" y="198" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="16" fill="white">CDP + tag manager</text>
+        <text x="400" y="220" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.85)">pull once, activate everywhere</text>
+
+        <!-- Fan lines to consumers -->
+        <path d="M400 238 L400 268 L140 268 L140 292" stroke="rgba(255,255,255,.18)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <path d="M400 238 L400 268 L320 268 L320 292" stroke="rgba(255,255,255,.18)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <path d="M400 238 L400 268 L480 268 L480 292" stroke="rgba(255,255,255,.18)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <path d="M400 238 L400 268 L660 268 L660 292" stroke="rgba(255,255,255,.18)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+        <!-- Consumer: Store search -->
+        <rect x="60" y="292" width="160" height="68" rx="4" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+        <text x="140" y="319" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="13" fill="white">Store search</text>
+        <text x="140" y="338" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">facet by mm</text>
+        <text x="140" y="352" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">+ book tag filter</text>
+
+        <!-- Consumer: Website PDPs -->
+        <rect x="240" y="292" width="160" height="68" rx="4" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+        <text x="320" y="319" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="13" fill="white">Website PDPs</text>
+        <text x="320" y="338" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">structured data</text>
+        <text x="320" y="352" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">SEO + conversion</text>
+
+        <!-- Consumer: Looker / BI -->
+        <rect x="420" y="292" width="160" height="68" rx="4" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+        <text x="500" y="319" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="13" fill="white">Looker / BI</text>
+        <text x="500" y="338" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">ops dashboards</text>
+        <text x="500" y="352" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">assortment gaps</text>
+
+        <!-- Consumer: AI search -->
+        <rect x="600" y="292" width="160" height="68" rx="4" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+        <text x="680" y="319" text-anchor="middle" font-family="'Libre Baskerville', serif" font-size="13" fill="white">AI search</text>
+        <text x="680" y="338" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">schema.org tags</text>
+        <text x="680" y="352" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">SGE + ChatGPT</text>
+
+        <!-- Divider + foundation label -->
+        <line x1="40" y1="390" x2="760" y2="390" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="40" y="406" font-size="9" fill="rgba(255,255,255,.3)" letter-spacing="0.1em" font-weight="500">ROADMAP TIE-IN</text>
+        <rect x="190" y="396" width="420" height="22" rx="2" fill="rgba(0,119,182,.25)" stroke="rgba(122,191,224,.3)" stroke-width="1"/>
+        <text x="400" y="411" text-anchor="middle" font-size="11" fill="rgba(122,191,224,.85)">Frame Attribute Data Model v2 · Priority #3 · Q1 2026 · Data-prioritized</text>
+      </svg>
+      <p class="diagram-caption">Structured frame data, pulled once from the PIM, activated across every consumer channel without per-channel engineering work.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 3: DEMO -->
+<section id="demo">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" data-n="03 ·">Proof of concept</div>
+    <div class="demo-grid">
+      <div class="demo-copy">
+        <h3 class="reveal">Here's my first draft prototype.</h3>
+        <p class="reveal" style="transition-delay:.06s">To show the concept is sound, I built a working internal frame search tool from scratch — faceted by lens width, bridge, temple, shape, and style book tag. It runs on a flat JSON data file today; the production version would connect to a live PIM with real inventory data and role-based views. Single HTML file. No framework. No build step.</p>
+        <ul class="reveal" style="transition-delay:.1s">
+          <li>Range sliders filter by exact millimeter — only works with integer fields in the data model</li>
+          <li>Style book tags stored as a multi-value array — a frame can live in multiple books simultaneously</li>
+          <li>Matched measurement pills turn green — built for the associate standing with a customer</li>
+          <li>In-store availability shown per card — inventory layer bolted on, not embedded</li>
+        </ul>
+        <a href="https://modom1123.github.io/wp-frame-search/" target="_blank" class="demo-link reveal" style="transition-delay:.14s;">
+          Try the prototype ↗
+        </a>
+      </div>
+      <div class="reveal" style="transition-delay:.1s">
+        <a href="https://modom1123.github.io/wp-frame-search/" target="_blank" style="display:block;text-decoration:none;">
+          <div class="demo-preview" style="overflow:hidden;cursor:pointer;">
+            <div class="dp-bar">
+              <span class="dp-dot r"></span><span class="dp-dot y"></span><span class="dp-dot g"></span>
+              <span class="dp-url">modom1123.github.io/wp-frame-search</span>
+            </div>
+            <img src="frame-search-preview.png" alt="WP Frame Search prototype"
+              style="width:100%;display:block;border:none;"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div style="display:none;padding:14px;">
+              <div class="dp-topbar">
+                <span class="dp-logo">WP | Frame Search</span>
+                <div class="dp-search"></div>
+                <span class="dp-badge">Demo data</span>
+              </div>
+              <div class="dp-layout">
+                <div class="dp-sb">
+                  <div class="dp-fl w navy-tint" style="height:5px"></div>
+                  <div class="dp-fg"><div class="dp-fl w"></div><div class="dp-fl m"></div><div class="dp-fl w"></div></div>
+                  <div class="dp-fl w navy-tint" style="height:5px;margin-top:4px"></div>
+                  <div class="dp-fg"><div class="dp-fl w"></div><div class="dp-fl s"></div><div class="dp-fl m"></div></div>
+                  <div class="dp-fl w" style="height:5px;background:#DCF0FA;margin-top:4px"></div>
+                  <div class="dp-fg"><div class="dp-book"></div><div class="dp-book" style="background:var(--border-lt);border-color:var(--border-lt)"></div></div>
+                </div>
+                <div class="dp-cards">
+                  <div class="dp-card"><div class="dp-card-img"></div><div class="dp-ln"></div><div class="dp-ln m"></div><div class="dp-pills"><div class="dp-pill g"></div><div class="dp-pill g"></div><div class="dp-pill"></div></div></div>
+                  <div class="dp-card"><div class="dp-card-img"></div><div class="dp-ln"></div><div class="dp-ln m"></div><div class="dp-pills"><div class="dp-pill"></div><div class="dp-pill"></div><div class="dp-pill"></div></div></div>
+                  <div class="dp-card"><div class="dp-card-img"></div><div class="dp-ln"></div><div class="dp-ln m"></div><div class="dp-pills"><div class="dp-pill g"></div><div class="dp-pill"></div><div class="dp-pill g"></div></div></div>
+                  <div class="dp-card"><div class="dp-card-img"></div><div class="dp-ln"></div><div class="dp-ln m"></div><div class="dp-pills"><div class="dp-pill g"></div><div class="dp-pill g"></div><div class="dp-pill g"></div></div></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:10px 14px;background:var(--navy-lt);font-size:11px;color:var(--navy);font-family:var(--sans);text-align:center;font-weight:500;">
+              Click to open the live prototype ↗
+            </div>
+          </div>
+        </a>
       </div>
     </div>
-
-    <div id="book-facet">
-      <div class="facet-title">Style book</div>
-    </div>
-
-    <button class="clear-link" onclick="clearAll()">Clear all filters</button>
   </div>
+</section>
 
-  <div class="results-pane">
-    <div class="results-header">
-      <div class="results-count"><strong id="rcount">—</strong> frames</div>
-      <div class="active-tags" id="atags"></div>
+<hr class="divider">
+
+<!-- SECTION 4: ROADMAP -->
+<section id="roadmap" class="roadmap-section">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" data-n="04 ·">How I'd prioritize</div>
+    <h2 class="section-headline reveal" style="transition-delay:.06s">Foundation first. Value layer second.</h2>
+    <p class="section-body reveal" style="transition-delay:.12s">
+      We pick the prioritization method that best fits the business — whether it's WSJF or RICE — then use it consistently to execute the strategy. What matters isn't the framework, it's having a defensible, shared rationale that keeps the team aligned when tradeoffs get hard. The sequencing below reflects that: foundation before features, unblocking before optimizing.
+    </p>
+    <div class="rt-wrap reveal" style="transition-delay:.16s">
+      <table class="rt">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Feature</th>
+            <th style="width:90px;text-align:center">Priority</th>
+            <th style="width:96px;text-align:center">Quarter</th>
+            <th style="width:104px;text-align:center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rt-num">1</td>
+            <td><div class="rt-name">PIM Core System Rebuild</div><div class="rt-desc">Architectural foundation — the connective tissue every other initiative requires</div></td>
+            <td class="rt-score">High</td>
+            <td style="text-align:center"><span class="rt-q">Q1 2026</span></td>
+            <td style="text-align:center"><span class="rt-status active">In progress</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">2</td>
+            <td><div class="rt-name">Catalog API Gateway</div><div class="rt-desc">Unified API serving catalog data to all consumer and internal channels in real time</div></td>
+            <td class="rt-score">High</td>
+            <td style="text-align:center"><span class="rt-q">Q1 2026</span></td>
+            <td style="text-align:center"><span class="rt-status active">In progress</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">3</td>
+            <td><div class="rt-name">Frame Attribute Data Model v2</div><div class="rt-desc">Integer mm fields, collection, material, shape, sizes, style book arrays — the schema that activates the diagram above</div></td>
+            <td class="rt-score">High</td>
+            <td style="text-align:center"><span class="rt-q">Q1 2026</span></td>
+            <td style="text-align:center"><span class="rt-status active">In progress</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">4</td>
+            <td><div class="rt-name">Merchandising Rules Engine</div><div class="rt-desc">No-code rule builder for product visibility, placement, badging, and collection sequencing</div></td>
+            <td class="rt-score">High</td>
+            <td style="text-align:center"><span class="rt-q">Q2 2026</span></td>
+            <td style="text-align:center"><span class="rt-status doc">Documented</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">5</td>
+            <td><div class="rt-name">Catalog-to-Store Assortment Sync</div><div class="rt-desc">Real-time propagation of catalog decisions — new styles, colorways, discontinuations — to store-level inventory</div></td>
+            <td class="rt-score">High</td>
+            <td style="text-align:center"><span class="rt-q">Q2 2026</span></td>
+            <td style="text-align:center"><span class="rt-status research">Research</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">6</td>
+            <td><div class="rt-name">Prescription Lens Config Engine</div><div class="rt-desc">Catalog support for configurable Rx lens options tied to each frame SKU — bridging optical and retail</div></td>
+            <td class="rt-score">High</td>
+            <td style="text-align:center"><span class="rt-q">Q2 2026</span></td>
+            <td style="text-align:center"><span class="rt-status research">Research</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">7</td>
+            <td><div class="rt-name">Product Launch Workflow Automation</div><div class="rt-desc">End-to-end NPI: intake → content production → QA → publish → channel activation with full audit trail</div></td>
+            <td class="rt-score">Med</td>
+            <td style="text-align:center"><span class="rt-q">Q2 2026</span></td>
+            <td style="text-align:center"><span class="rt-status sched">Scheduled</span></td>
+          </tr>
+          <tr>
+            <td class="rt-num">8</td>
+            <td><div class="rt-name">Search Relevance &amp; Merch Platform</div><div class="rt-desc">Boost/bury controls and synonym management — merchants tune on-site search without an eng ticket</div></td>
+            <td class="rt-score">Med</td>
+            <td style="text-align:center"><span class="rt-q">Q2 2026</span></td>
+            <td style="text-align:center"><span class="rt-status sched">Scheduled</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div id="status-msg">Loading…</div>
-    <div class="grid" id="grid" style="display:none"></div>
+    <p class="rt-note reveal" style="transition-delay:.2s">Full 40-item data-prioritized roadmap with feature contribution, revenue by tier, and priorities by team available on request. — <a href="mailto:YOUREMAIL@gmail.com">Ask for it ↗</a></p>
   </div>
-</div>
+</section>
 
-<!-- ADD FRAME MODAL -->
-<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <h2>Add a frame</h2>
-    <label>Frame name</label>
-    <input type="text" id="f-name" placeholder="e.g. Percey">
-    <label>SKU</label>
-    <input type="text" id="f-sku" placeholder="e.g. OPT-1042">
-    <label>Color(s) — comma separated</label>
-    <input type="text" id="f-colors" placeholder="Jet Black, Whiskey Tortoise">
-    <div class="form-row">
-      <div><label>Lens width (mm)</label><input type="number" id="f-lens" min="44" max="62" value="51"></div>
-      <div><label>Bridge (mm)</label><input type="number" id="f-bridge" min="14" max="26" value="18"></div>
-      <div><label>Temple (mm)</label><input type="number" id="f-temple" min="130" max="155" value="145"></div>
+<!-- CLOSING -->
+<section class="closing" id="contact">
+  <div class="closing-inner">
+    <div class="closing-left">
+      <div class="section-eyebrow reveal" data-n="05 ·">Let's talk</div>
+      <h2 class="section-headline reveal" style="transition-delay:.06s;max-width:100%">
+        The floor gave me<br>the use cases.<br>
+        <em style="font-style:italic;color:var(--sky)">The PM background gave me<br>the roadmap.</em>
+      </h2>
+      <p class="reveal" style="transition-delay:.1s">I'm not pitching a vision from the outside. I know what it feels like when the system can't tell you if a frame fits a wide face, or which collection a frame belongs to, or why two associates give a customer different answers about materials. I also know how these gaps make or break a sale in real time — a customer hands you their current frames and says "something like this," and right now the tools don't let you match by measurement. That's a lost sale with a clear technical fix. That's the user research most PM candidates don't have — and it maps directly to every initiative on this roadmap.</p>
+      <p class="reveal" style="transition-delay:.15s">I'm based in Portland, Oregon — and I'd love to continue growing with Warby Parker in this role. If remote or hybrid work is an option, I'd welcome that conversation. Happy to walk through the full roadmap, discuss the data model in depth, or just talk through what the first 90 days would look like.</p>
     </div>
-    <label>Shape</label>
-    <select id="f-shape">
-      <option>Rectangle</option><option>Round</option>
-      <option>Cat-eye</option><option>Oval</option><option>Square</option>
-    </select>
-    <label>Style books — comma separated</label>
-    <input type="text" id="f-books" placeholder="Rectangle Book, Heritage Book">
-    <label>Availability</label>
-    <select id="f-avail">
-      <option value="true">In store</option>
-      <option value="false">On order</option>
-    </select>
-    <label>Units on hand</label>
-    <input type="number" id="f-units" value="3" min="0">
-    <div class="form-msg" id="fmsg"></div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitFrame()">Save frame</button>
+    <div class="closing-right reveal" style="transition-delay:.1s">
+      <a href="mailto:YOUREMAIL@gmail.com" class="citem">
+        <span class="citem-key">Email</span>
+        <span class="citem-val">YOUREMAIL@gmail.com</span>
+      </a>
+      <a href="https://linkedin.com/in/YOURPROFILE" target="_blank" class="citem">
+        <span class="citem-key">LinkedIn</span>
+        <span class="citem-val">linkedin.com/in/YOURPROFILE ↗</span>
+      </a>
+      <div class="citem" style="cursor:default;">
+        <span class="citem-key">Location</span>
+        <span class="citem-val">Portland, Oregon · Open to remote or hybrid</span>
+      </div>
+      <div class="citem" style="cursor:pointer;" onclick="window.open('https://modom1123.github.io/wp-frame-search/','_blank')">
+        <span class="citem-key">Prototype</span>
+        <span class="citem-val">modom1123.github.io/wp-frame-search ↗</span>
+      </div>
+      <a href="RESUME_LINK" target="_blank" class="citem">
+        <span class="citem-key">Résumé</span>
+        <span class="citem-val">Download PDF ↗</span>
+      </a>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ─────────────────────────────────────────────────────────────────────
-  FIREBASE SETUP (optional — app works without this)
-  ─────────────────────────────────────────────────────────────────────
-  1. Go to https://console.firebase.google.com → New project
-  2. Add a web app → copy the firebaseConfig object below
-  3. Enable Firestore → Start in test mode
-  4. Uncomment this entire block and paste your config values
-  5. Push to GitHub — the app will now read/write live from Firestore
-
-<script type="module">
-  import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore,
-           collection,
-           getDocs,
-           addDoc }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey:            "PASTE_YOUR_API_KEY",
-    authDomain:        "PASTE_YOUR_PROJECT.firebaseapp.com",
-    projectId:         "PASTE_YOUR_PROJECT_ID",
-    storageBucket:     "PASTE_YOUR_PROJECT.appspot.com",
-    messagingSenderId: "PASTE_YOUR_SENDER_ID",
-    appId:             "PASTE_YOUR_APP_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-
-  window._loadFrames = async () => {
-    const snap = await getDocs(collection(db, "frames"));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  };
-
-  window._saveFrame = async (frame) => {
-    return await addDoc(collection(db, "frames"), frame);
-  };
-</script>
-──────────────────────────────────────────────────────────────────── -->
+<footer>
+  <span>Mallory Odom · Sr. PM Application · Warby Parker Catalog &amp; Merchandising Systems</span>
+  <span>Built and deployed — because that's how I work.</span>
+</footer>
 
 <script>
-// ─── Frame shape SVG paths ────────────────────────────────────────────────
-const SHAPES = {
-  Rectangle: () => `M8 18 Q8 10 16 10 L94 10 Q102 10 102 18 L102 36 Q102 44 94 44 L16 44 Q8 44 8 36 Z`,
-  Round:     () => `M55 10 A22 22 0 1 1 54.9 10`,
-  Oval:      () => `M14 27 Q14 10 55 10 Q96 10 96 27 Q96 44 55 44 Q14 44 14 27 Z`,
-  "Cat-eye": () => `M8 34 Q6 18 18 14 L74 11 Q102 7 102 22 L102 34 Q102 44 92 44 L18 44 Q8 44 8 34 Z`,
-  Square:    () => `M8 10 L102 10 L102 44 L8 44 Z`,
-};
-
-function makeSVG(shape) {
-  const p = (SHAPES[shape] || SHAPES.Rectangle)();
-  return `<svg viewBox="0 0 110 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <line x1="0"   y1="27" x2="8"   y2="27" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="102" y1="27" x2="110" y2="27" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="${p}" fill="#f0eeea" stroke="#6b6a64" stroke-width="1.5" stroke-linejoin="round"/>
-    <line x1="49" y1="27" x2="61" y2="27" stroke="#bbb" stroke-width="1" stroke-linecap="round"/>
-  </svg>`;
-}
-
-// ─── App state ────────────────────────────────────────────────────────────
-let frames = [];
-const sel = { fit: new Set(), shape: new Set(), book: null };
-
-const RANGES = {
-  l: { min:'lmin', max:'lmax', lo:44, hi:60 },
-  b: { min:'bmin', max:'bmax', lo:14, hi:26 },
-  t: { min:'tmin', max:'tmax', lo:130, hi:155 },
-};
-
-// ─── Boot ─────────────────────────────────────────────────────────────────
-async function init() {
-  if (typeof window._loadFrames === 'function') {
-    try {
-      frames = await window._loadFrames();
-      document.getElementById('loc-badge').textContent = 'Firestore · live';
-    } catch(e) {
-      document.getElementById('status-msg').textContent = 'Firestore error: ' + e.message;
-      return;
-    }
-  } else {
-    try {
-      const r = await fetch('./frames.json');
-      if (!r.ok) throw new Error('missing');
-      frames = await r.json();
-      document.getElementById('loc-badge').textContent = 'frames.json';
-    } catch(_) {
-      frames = DEMO;
-      document.getElementById('loc-badge').textContent = 'Demo data';
-    }
-  }
-  buildBooks();
-  doFilter();
-}
-
-// ─── Range helpers ────────────────────────────────────────────────────────
-function syncR(k) {
-  const r = RANGES[k];
-  let mn = +document.getElementById(r.min).value;
-  let mx = +document.getElementById(r.max).value;
-  if (mn > mx) {
-    if (event.target.id === r.min) document.getElementById(r.min).value = mx;
-    else document.getElementById(r.max).value = mn;
-  }
-  document.getElementById(r.min+'-v').textContent = document.getElementById(r.min).value;
-  document.getElementById(r.max+'-v').textContent = document.getElementById(r.max).value;
-}
-function getR(k) { const r=RANGES[k]; return [+document.getElementById(r.min).value, +document.getElementById(r.max).value]; }
-function rangeChanged(k) { const r=RANGES[k]; return +document.getElementById(r.min).value!==r.lo || +document.getElementById(r.max).value!==r.hi; }
-function fitOf(l) { return l<=49?'Narrow':l<=53?'Medium':'Wide'; }
-
-// ─── Chips ────────────────────────────────────────────────────────────────
-function toggleChip(el) {
-  const set = el.dataset.g === 'fit' ? sel.fit : sel.shape;
-  const v = el.textContent.trim();
-  set.has(v) ? (set.delete(v), el.classList.remove('on')) : (set.add(v), el.classList.add('on'));
-  doFilter();
-}
-function toggleBook(el) {
-  const v = el.textContent.trim();
-  document.querySelectorAll('.book-btn').forEach(b => b.classList.remove('on'));
-  sel.book = sel.book === v ? null : v;
-  if (sel.book) el.classList.add('on');
-  doFilter();
-}
-
-function buildBooks() {
-  const books = [...new Set(frames.flatMap(f => f.books||[]))].sort();
-  const el = document.getElementById('book-facet');
-  el.innerHTML = '<div class="facet-title">Style book</div>' +
-    books.map(b => `<button class="book-btn" onclick="toggleBook(this)">${b}</button>`).join('');
-}
-
-// ─── Filter + render ──────────────────────────────────────────────────────
-function doFilter() {
-  const q = document.getElementById('q').value.toLowerCase();
-  const [lMn,lMx] = getR('l'), [bMn,bMx] = getR('b'), [tMn,tMx] = getR('t');
-
-  const res = frames.filter(f => {
-    if (f.lens   < lMn || f.lens   > lMx) return false;
-    if (f.bridge < bMn || f.bridge > bMx) return false;
-    if (f.temple < tMn || f.temple > tMx) return false;
-    if (sel.fit.size   && !sel.fit.has(fitOf(f.lens))) return false;
-    if (sel.shape.size && !sel.shape.has(f.shape))     return false;
-    if (sel.book       && !(f.books||[]).includes(sel.book)) return false;
-    if (q && ![f.name, f.sku, ...(f.colors||[])].join(' ').toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  document.getElementById('rcount').textContent = res.length;
-  document.getElementById('status-msg').style.display = 'none';
-  const grid = document.getElementById('grid');
-  grid.style.display = '';
-  grid.innerHTML = res.length
-    ? res.map(f => cardHTML(f, lMn,lMx, bMn,bMx, tMn,tMx)).join('')
-    : '<div class="empty">No frames match these filters.</div>';
-
-  renderTags();
-}
-
-function cardHTML(f, lMn,lMx, bMn,bMx, tMn,tMx) {
-  const lM = f.lens>=lMn && f.lens<=lMx;
-  const bM = f.bridge>=bMn && f.bridge<=bMx;
-  const tM = f.temple>=tMn && f.temple<=tMx;
-  const avail = f.available !== false;
-  return `<div class="card">
-    <div class="frame-art">${makeSVG(f.shape||'Rectangle')}</div>
-    <div class="card-name">${f.name}</div>
-    <div class="card-sku">${f.sku}${f.colors?.length?' · '+f.colors[0]:''}</div>
-    <div class="mm-row">
-      <span class="mm-pill${lM?' match':''}">L ${f.lens}mm</span>
-      <span class="mm-pill${bM?' match':''}">B ${f.bridge}mm</span>
-      <span class="mm-pill${tM?' match':''}">T ${f.temple}mm</span>
-    </div>
-    ${(f.books||[]).length?`<div class="book-tags">${f.books.map(b=>`<span class="book-tag">${b}</span>`).join('')}</div>`:''}
-    <div class="avail-row">
-      <span class="dot ${avail?'g':'a'}"></span>
-      ${avail?`In store · ${f.units??0} units`:'On order'}
-    </div>
-  </div>`;
-}
-
-// ─── Active filter pills ──────────────────────────────────────────────────
-let _clears = [];
-function renderTags() {
-  const tags = [];
-  if (rangeChanged('l')) { const [a,b]=getR('l'); tags.push({ label:`Lens ${a}–${b}mm`, clear(){document.getElementById('lmin').value=44;document.getElementById('lmax').value=60;syncR('l');} }); }
-  if (rangeChanged('b')) { const [a,b]=getR('b'); tags.push({ label:`Bridge ${a}–${b}mm`, clear(){document.getElementById('bmin').value=14;document.getElementById('bmax').value=26;syncR('b');} }); }
-  if (rangeChanged('t')) { const [a,b]=getR('t'); tags.push({ label:`Temple ${a}–${b}mm`, clear(){document.getElementById('tmin').value=130;document.getElementById('tmax').value=155;syncR('t');} }); }
-  sel.fit.forEach(v   => tags.push({ label:v, clear(){ sel.fit.delete(v);   document.querySelectorAll('[data-g=fit]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on')); } }));
-  sel.shape.forEach(v => tags.push({ label:v, clear(){ sel.shape.delete(v); document.querySelectorAll('[data-g=shape]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on')); } }));
-  if (sel.book) tags.push({ label:sel.book, clear(){ sel.book=null; document.querySelectorAll('.book-btn').forEach(b=>b.classList.remove('on')); } });
-  _clears = tags.map(t=>t.clear);
-  document.getElementById('atags').innerHTML = tags.map((t,i)=>
-    `<span class="atag">${t.label}<button onclick="rmTag(${i})">×</button></span>`).join('');
-}
-function rmTag(i) { _clears[i](); doFilter(); }
-
-function clearAll() {
-  document.getElementById('q').value = '';
-  Object.entries(RANGES).forEach(([k,r]) => {
-    document.getElementById(r.min).value = r.lo; document.getElementById(r.max).value = r.hi;
-    document.getElementById(r.min+'-v').textContent = r.lo; document.getElementById(r.max+'-v').textContent = r.hi;
-  });
-  document.querySelectorAll('.chip,.book-btn').forEach(c=>c.classList.remove('on'));
-  sel.fit.clear(); sel.shape.clear(); sel.book=null;
-  doFilter();
-}
-
-// ─── Modal ────────────────────────────────────────────────────────────────
-function openModal()  { document.getElementById('modal').classList.add('open'); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('fmsg').textContent=''; }
-
-async function submitFrame() {
-  const msg = document.getElementById('fmsg');
-  const frame = {
-    name:      document.getElementById('f-name').value.trim(),
-    sku:       document.getElementById('f-sku').value.trim(),
-    colors:    document.getElementById('f-colors').value.split(',').map(s=>s.trim()).filter(Boolean),
-    lens:      +document.getElementById('f-lens').value,
-    bridge:    +document.getElementById('f-bridge').value,
-    temple:    +document.getElementById('f-temple').value,
-    shape:     document.getElementById('f-shape').value,
-    books:     document.getElementById('f-books').value.split(',').map(s=>s.trim()).filter(Boolean),
-    available: document.getElementById('f-avail').value === 'true',
-    units:     +document.getElementById('f-units').value,
-  };
-  if (!frame.name || !frame.sku) { msg.className='form-msg err'; msg.textContent='Name and SKU are required.'; return; }
-
-  if (typeof window._saveFrame === 'function') {
-    try {
-      await window._saveFrame(frame);
-      frames.push(frame);
-      buildBooks(); doFilter();
-      msg.className='form-msg ok'; msg.textContent='Saved to Firestore ✓';
-      setTimeout(closeModal, 1200);
-    } catch(e) { msg.className='form-msg err'; msg.textContent='Error: '+e.message; }
-  } else {
-    frames.push(frame);
-    buildBooks(); doFilter();
-    msg.className='form-msg ok'; msg.textContent='Added for this session (connect Firestore to persist).';
-    setTimeout(closeModal, 1600);
-  }
-}
-
-// ─── Demo data (used when no frames.json and no Firestore) ────────────────
-const DEMO = [
-  { name:"Percey",   sku:"OPT-1042", lens:51, bridge:18, temple:145, shape:"Rectangle", colors:["Jet Black","Whiskey Tortoise"],   books:["Rectangle Book","Heritage Book"],      available:true,  units:4 },
-  { name:"Durand",   sku:"OPT-2210", lens:47, bridge:20, temple:140, shape:"Round",     colors:["Whiskey Tortoise","Burnt Lemon"], books:["Oval & Round Book","Heritage Book"],    available:true,  units:6 },
-  { name:"Haskell",  sku:"OPT-0881", lens:54, bridge:17, temple:145, shape:"Rectangle", colors:["Striped Bottle","Black Matte"],   books:["Rectangle Book","Back to School"],     available:false, units:0 },
-  { name:"Crane",    sku:"OPT-3304", lens:49, bridge:21, temple:148, shape:"Cat-eye",   colors:["Rose Water","Desert Khaki"],      books:["Summer Sun Book"],                     available:true,  units:3 },
-  { name:"Fillmore", sku:"OPT-0556", lens:48, bridge:19, temple:145, shape:"Square",    colors:["Jet Black","Striped Bottle"],     books:["Rectangle Book"],                     available:true,  units:2 },
-  { name:"Tatum",    sku:"OPT-4411", lens:50, bridge:16, temple:135, shape:"Cat-eye",   colors:["Rose Water","Jet Black"],         books:["Summer Sun Book","Back to School"],    available:true,  units:5 },
-  { name:"Winston",  sku:"OPT-0019", lens:53, bridge:20, temple:150, shape:"Rectangle", colors:["Whiskey Tortoise","Burnt Olive"], books:["Rectangle Book","Heritage Book"],      available:false, units:0 },
-  { name:"Toile",    sku:"OPT-2897", lens:52, bridge:18, temple:143, shape:"Oval",      colors:["Burnt Lemon","Cinnamon"],         books:["Oval & Round Book","Summer Sun Book"], available:true,  units:3 },
-  { name:"Tate",     sku:"OPT-3310", lens:46, bridge:22, temple:140, shape:"Round",     colors:["Earthy Slate","Kelp"],            books:["Oval & Round Book"],                   available:true,  units:2 },
-  { name:"Aldous",   sku:"OPT-5501", lens:55, bridge:18, temple:148, shape:"Rectangle", colors:["Matte Black","Slate Crystal"],   books:["Heritage Book","Back to School"],      available:true,  units:4 },
-  { name:"Piper",    sku:"OPT-6612", lens:50, bridge:19, temple:140, shape:"Cat-eye",   colors:["Rosewood","Champagne Crystal"],   books:["Summer Sun Book"],                     available:true,  units:3 },
-  { name:"Colby",    sku:"OPT-7723", lens:52, bridge:17, temple:145, shape:"Square",    colors:["Jet Black","Bark Crystal"],      books:["Rectangle Book"],                     available:false, units:0 },
-];
-
-init();
-
-// ─── Password gate ────────────────────────────────────────────────────────
-// Change 'frames2026' below to whatever password you want to use
-const GATE_PW = 'frames2026';
-const SESSION_KEY = 'wp_fs_auth';
-
-function checkPw() {
-  const val = document.getElementById('gate-pw').value.trim();
-  if (val === GATE_PW) {
-    sessionStorage.setItem(SESSION_KEY, '1');
-    document.getElementById('gate').classList.add('hidden');
-  } else {
-    const err = document.getElementById('gate-err');
-    err.textContent = 'Incorrect — try again.';
-    document.getElementById('gate-pw').value = '';
-    document.getElementById('gate-pw').focus();
-    setTimeout(() => err.textContent = '', 2500);
-  }
-}
-
-// Auto-unlock if already authenticated this session
-if (sessionStorage.getItem(SESSION_KEY) === '1') {
-  document.getElementById('gate').classList.add('hidden');
-}
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
 </body>
 </html>
