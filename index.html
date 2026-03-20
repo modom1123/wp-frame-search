@@ -348,6 +348,519 @@
     <div class="fp-section-label">Current floorset</div>
     <div class="fp-card">
       <div class="fp-row current">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div>
+            <div class="fp-row-name current-name" style="display:flex;align-items:center;gap:8px;">
+              Spring Core 2
+              <div class="notif-badge" style="width:20px;height:20px;">
+                <svg viewBox="0 0 10 10" fill="none"><text x="5" y="8" text-anchor="middle" font-size="9" font-weight="700" fill="white">!</text></svg>
+              </div>
+            </div>
+            <div class="fp-row-sub">Active now</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fp-section">
+    <div class="fp-section-label">Previous floorsets</div>
+    <div class="fp-card">
+      <div class="fp-row"><div class="fp-row-name">Spring Core 1</div></div>
+      <div class="fp-row"><div class="fp-row-name">Mosaic Collection</div></div>
+      <div class="fp-row"><div class="fp-row-name">Inlet Collection</div></div>
+    </div>
+  </div>
+
+  <div class="fp-section">
+    <div class="fp-section-label">Upcoming</div>
+    <div class="fp-card">
+      <div class="fp-row">
+        <div>
+          <div class="fp-row-name">Summer Core 1</div>
+          <div class="fp-row-sub">Coming soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FRAME SEARCH SCREEN ── -->
+<div class="view" id="search-screen">
+  <div class="fs-topbar">
+    <button class="fs-back" onclick="showView('home')">
+      <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1L2 8l6 7"/></svg>
+      Back
+    </button>
+    <div class="fs-logo">WP<span class="fs-logo-sep">|</span>Frame Search</div>
+    <div class="sw">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="5.5"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5"/></svg>
+      <input type="text" id="q" placeholder="Name, SKU, or color…" oninput="df()">
+    </div>
+    <div class="fs-badge">Demo data</div>
+    <button class="fs-atbtn" onclick="openM()">+ Add frame</button>
+  </div>
+
+  <div class="fs-body">
+    <div class="sidebar">
+      <div><div class="ft">Lens width (mm)</div><div class="rr"><label>min</label><input type="range" id="lmn" min="44" max="60" value="44" step="1" oninput="sr('l');df()"><span class="rv" id="lmn-v">44</span></div><div class="rr"><label>max</label><input type="range" id="lmx" min="44" max="60" value="60" step="1" oninput="sr('l');df()"><span class="rv" id="lmx-v">60</span></div></div>
+      <div><div class="ft">Bridge (mm)</div><div class="rr"><label>min</label><input type="range" id="bmn" min="14" max="26" value="14" step="1" oninput="sr('b');df()"><span class="rv" id="bmn-v">14</span></div><div class="rr"><label>max</label><input type="range" id="bmx" min="14" max="26" value="26" step="1" oninput="sr('b');df()"><span class="rv" id="bmx-v">26</span></div></div>
+      <div><div class="ft">Temple length (mm)</div><div class="rr"><label>min</label><input type="range" id="tmn" min="130" max="155" value="130" step="1" oninput="sr('t');df()"><span class="rv" id="tmn-v">130</span></div><div class="rr"><label>max</label><input type="range" id="tmx" min="130" max="155" value="155" step="1" oninput="sr('t');df()"><span class="rv" id="tmx-v">155</span></div></div>
+      <div><div class="ft">Fit</div><div class="cr"><button class="chip" data-g="fit" onclick="tc(this)">Extra Narrow</button><button class="chip" data-g="fit" onclick="tc(this)">Narrow</button><button class="chip" data-g="fit" onclick="tc(this)">Medium</button><button class="chip" data-g="fit" onclick="tc(this)">Wide</button><button class="chip" data-g="fit" onclick="tc(this)">Extra Wide</button><button class="chip" data-g="fit" onclick="tc(this)">Kids</button></div></div>
+      <div><div class="ft">Shape</div><div class="cr"><button class="chip" data-g="shape" onclick="tc(this)">Rectangle</button><button class="chip" data-g="shape" onclick="tc(this)">Round</button><button class="chip" data-g="shape" onclick="tc(this)">Cat-eye</button><button class="chip" data-g="shape" onclick="tc(this)">Oval</button><button class="chip" data-g="shape" onclick="tc(this)">Square</button></div></div>
+      <div><div class="ft">Collection</div><div class="cr"><button class="chip" data-g="collection" onclick="tc(this)">Emma Chamberlain</button><button class="chip" data-g="collection" onclick="tc(this)">Natasha Lyonne</button><button class="chip" data-g="collection" onclick="tc(this)">Mosaic</button><button class="chip" data-g="collection" onclick="tc(this)">Nylon</button><button class="chip" data-g="collection" onclick="tc(this)">Core</button></div></div>
+      <div id="bkf"><div class="ft">Style book</div></div>
+      <button class="cl" onclick="ca()">Clear all filters</button>
+    </div>
+    <div class="rp">
+      <div class="rh"><div class="rc"><strong id="cnt">12</strong> frames</div><div class="ats" id="ats"></div></div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FRAME MODAL -->
+<div class="mbg" id="modal" onclick="if(event.target===this)closeM()">
+  <div class="modal">
+    <h2>Add a frame</h2>
+    <label>Frame name</label><input type="text" id="fn" placeholder="e.g. Percey">
+    <label>SKU</label><input type="text" id="fsk" placeholder="e.g. OPT-9900">
+    <label>Color(s) — comma separated</label><input type="text" id="fc" placeholder="Jet Black, Whiskey Tortoise">
+    <div class="fr3"><div><label>Lens (mm)</label><input type="number" id="fl" value="51" min="44" max="62"></div><div><label>Bridge (mm)</label><input type="number" id="fb" value="18" min="14" max="26"></div><div><label>Temple (mm)</label><input type="number" id="ft" value="145" min="130" max="155"></div></div>
+    <label>Shape</label><select id="fsh"><option>Rectangle</option><option>Round</option><option>Cat-eye</option><option>Oval</option><option>Square</option></select>
+    <label>Style books — comma separated</label><input type="text" id="fbo" placeholder="Rectangle Book, Heritage Book">
+    <label>Availability</label><select id="fav"><option value="true">In store</option><option value="false">On order</option></select>
+    <label>Units on hand</label><input type="number" id="fu" value="3" min="0">
+    <div class="fm" id="fmsg"></div>
+    <div class="mf"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="addF()">Save frame</button></div>
+  </div>
+</div>
+
+<script>
+// ── View navigation ────────────────────────────────────────────────────────
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── Gate ──────────────────────────────────────────────────────────────────
+const GATE_PW='poetential', GATE_KEY='wp_fs_auth';
+function checkGate(){
+  const v=document.getElementById('gate-pw').value.trim();
+  if(v===GATE_PW){
+    sessionStorage.setItem(GATE_KEY,'1');
+    document.getElementById('gate').classList.add('hidden');
+    showView('home');
+  } else {
+    const e=document.getElementById('gate-err');
+    e.textContent='Incorrect — try again.';
+    document.getElementById('gate-pw').value='';
+    document.getElementById('gate-pw').focus();
+    setTimeout(()=>e.textContent='',2500);
+  }
+}
+if(sessionStorage.getItem(GATE_KEY)==='1'){
+  document.getElementById('gate').classList.add('hidden');
+  showView('home');
+}
+
+// ── Frame search app ───────────────────────────────────────────────────────
+const SHP={Rectangle:()=>'M8 18 Q8 10 16 10 L94 10 Q102 10 102 18 L102 36 Q102 44 94 44 L16 44 Q8 44 8 36 Z',Round:()=>'M55 10 A22 22 0 1 1 54.9 10',Oval:()=>'M14 27 Q14 10 55 10 Q96 10 96 27 Q96 44 55 44 Q14 44 14 27 Z',"Cat-eye":()=>'M8 34 Q6 18 18 14 L74 11 Q102 7 102 22 L102 34 Q102 44 92 44 L18 44 Q8 44 8 34 Z',Square:()=>'M8 10 L102 10 L102 44 L8 44 Z'};
+function svg(s){const p=(SHP[s]||SHP.Rectangle)();return'<svg viewBox="0 0 110 54" fill="none"><line x1="0" y1="27" x2="8" y2="27" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/><line x1="102" y1="27" x2="110" y2="27" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/><path d="'+p+'" fill="#f0eeea" stroke="#6b6a64" stroke-width="1.5" stroke-linejoin="round"/><line x1="49" y1="27" x2="61" y2="27" stroke="#bbb" stroke-width="1" stroke-linecap="round"/></svg>';}
+
+let frames=[
+  {name:"Percey",sku:"OPT-1042",lens:51,bridge:18,temple:145,shape:"Rectangle",colors:["Jet Black","Whiskey Tortoise"],books:["Rectangle Book","Heritage Book"],collection:"Core",available:true,units:4},
+  {name:"Durand",sku:"OPT-2210",lens:47,bridge:20,temple:140,shape:"Round",colors:["Whiskey Tortoise","Burnt Lemon"],books:["Oval & Round Book","Heritage Book"],collection:"Core",available:true,units:6},
+  {name:"Haskell",sku:"OPT-0881",lens:54,bridge:17,temple:145,shape:"Rectangle",colors:["Striped Bottle","Black Matte"],books:["Rectangle Book","Back to School"],collection:"Nylon",available:false,units:0},
+  {name:"Crane",sku:"OPT-3304",lens:49,bridge:21,temple:148,shape:"Cat-eye",colors:["Rose Water","Desert Khaki"],books:["Summer Sun Book"],collection:"Emma Chamberlain",available:true,units:3},
+  {name:"Fillmore",sku:"OPT-0556",lens:48,bridge:19,temple:145,shape:"Square",colors:["Jet Black","Striped Bottle"],books:["Rectangle Book"],collection:"Core",available:true,units:2},
+  {name:"Tatum",sku:"OPT-4411",lens:50,bridge:16,temple:135,shape:"Cat-eye",colors:["Rose Water","Jet Black"],books:["Summer Sun Book","Back to School"],collection:"Natasha Lyonne",available:true,units:5},
+  {name:"Winston",sku:"OPT-0019",lens:53,bridge:20,temple:150,shape:"Rectangle",colors:["Whiskey Tortoise","Burnt Olive"],books:["Rectangle Book","Heritage Book"],collection:"Core",available:false,units:0},
+  {name:"Toile",sku:"OPT-2897",lens:52,bridge:18,temple:143,shape:"Oval",colors:["Burnt Lemon","Cinnamon"],books:["Oval & Round Book","Summer Sun Book"],collection:"Mosaic",available:true,units:3},
+  {name:"Tate",sku:"OPT-3310",lens:46,bridge:22,temple:140,shape:"Round",colors:["Earthy Slate","Kelp"],books:["Oval & Round Book"],collection:"Mosaic",available:true,units:2},
+  {name:"Aldous",sku:"OPT-5501",lens:55,bridge:18,temple:148,shape:"Rectangle",colors:["Matte Black","Slate Crystal"],books:["Heritage Book","Back to School"],collection:"Nylon",available:true,units:4},
+  {name:"Piper",sku:"OPT-6612",lens:50,bridge:19,temple:140,shape:"Cat-eye",colors:["Rosewood","Champagne Crystal"],books:["Summer Sun Book"],collection:"Emma Chamberlain",available:true,units:3},
+  {name:"Colby",sku:"OPT-7723",lens:52,bridge:17,temple:145,shape:"Square",colors:["Jet Black","Bark Crystal"],books:["Rectangle Book"],collection:"Natasha Lyonne",available:false,units:0}
+];
+
+const sel={fit:new Set(),shape:new Set(),collection:new Set(),book:null};
+const R={l:{mn:'lmn',mx:'lmx',lo:44,hi:60},b:{mn:'bmn',mx:'bmx',lo:14,hi:26},t:{mn:'tmn',mx:'tmx',lo:130,hi:155}};
+
+function sr(k){const r=R[k];let mn=+document.getElementById(r.mn).value,mx=+document.getElementById(r.mx).value;if(mn>mx){if(event.target.id===r.mn)document.getElementById(r.mn).value=mx;else document.getElementById(r.mx).value=mn;}document.getElementById(r.mn+'-v').textContent=document.getElementById(r.mn).value;document.getElementById(r.mx+'-v').textContent=document.getElementById(r.mx).value;}
+function gr(k){const r=R[k];return[+document.getElementById(r.mn).value,+document.getElementById(r.mx).value];}
+function rc(k){const r=R[k];return+document.getElementById(r.mn).value!==r.lo||+document.getElementById(r.mx).value!==r.hi;}
+function fit(l){return l<=44?'Extra Narrow':l<=49?'Narrow':l<=53?'Medium':l<=57?'Wide':'Extra Wide';}
+function tc(el){const g=el.dataset.g;const set=g==='fit'?sel.fit:g==='shape'?sel.shape:sel.collection;const v=el.textContent.trim();set.has(v)?(set.delete(v),el.classList.remove('on')):(set.add(v),el.classList.add('on'));df();}
+function tb(el){const v=el.textContent.trim();document.querySelectorAll('.bb').forEach(b=>b.classList.remove('on'));sel.book=sel.book===v?null:v;if(sel.book)el.classList.add('on');df();}
+
+function bbooks(){const bs=[...new Set(frames.flatMap(f=>f.books||[]))].sort();document.getElementById('bkf').innerHTML='<div class="ft">Style book</div>'+bs.map(b=>'<button class="bb" onclick="tb(this)">'+b+'</button>').join('');}
+
+function df(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const[lmn,lmx]=gr('l'),[bmn,bmx]=gr('b'),[tmn,tmx]=gr('t');
+  const res=frames.filter(f=>{
+    if(f.lens<lmn||f.lens>lmx)return false;
+    if(f.bridge<bmn||f.bridge>bmx)return false;
+    if(f.temple<tmn||f.temple>tmx)return false;
+    if(sel.fit.size&&!sel.fit.has(fit(f.lens)))return false;
+    if(sel.shape.size&&!sel.shape.has(f.shape))return false;
+    if(sel.collection.size&&!sel.collection.has(f.collection))return false;
+    if(sel.book&&!(f.books||[]).includes(sel.book))return false;
+    if(q&&![f.name,f.sku,...(f.colors||[])].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('cnt').textContent=res.length;
+  document.getElementById('grid').innerHTML=res.length?res.map(f=>ch(f,lmn,lmx,bmn,bmx,tmn,tmx)).join(''):'<div class="empty">No frames match.</div>';
+  rt();
+}
+
+function ch(f,lmn,lmx,bmn,bmx,tmn,tmx){
+  const lm=f.lens>=lmn&&f.lens<=lmx,bm=f.bridge>=bmn&&f.bridge<=bmx,tm=f.temple>=tmn&&f.temple<=tmx,av=f.available!==false;
+  return'<div class="card"><div class="fa">'+svg(f.shape||'Rectangle')+'</div><div class="cn">'+f.name+'</div><div class="cs">'+f.sku+(f.colors&&f.colors.length?' · '+f.colors[0]:'')+'</div>'+(f.collection?'<div style="margin-bottom:6px"><span style="font-size:10px;padding:2px 7px;background:#e8f0fb;border:1px solid #b3c9ee;border-radius:20px;color:#1a4a8a;">'+f.collection+'</span></div>':'')+'<div class="mr"><span class="mp'+(lm?' m':'')+'">L '+f.lens+'mm</span><span class="mp'+(bm?' m':'')+'">B '+f.bridge+'mm</span><span class="mp'+(tm?' m':'')+'">T '+f.temple+'mm</span></div>'+((f.books||[]).length?'<div class="bt">'+f.books.map(b=>'<span class="btag">'+b+'</span>').join('')+'</div>':'')+'<div class="av"><span class="dot '+(av?'g':'a')+'"></span>'+(av?'In store · '+(f.units??0)+' units':'On order')+'</div></div>';
+}
+
+let _cl=[];
+function rt(){
+  const tags=[];
+  if(rc('l')){const[a,b]=gr('l');tags.push({l:'Lens '+a+'–'+b+'mm',c(){document.getElementById('lmn').value=44;document.getElementById('lmx').value=60;sr('l');}});}
+  if(rc('b')){const[a,b]=gr('b');tags.push({l:'Bridge '+a+'–'+b+'mm',c(){document.getElementById('bmn').value=14;document.getElementById('bmx').value=26;sr('b');}});}
+  if(rc('t')){const[a,b]=gr('t');tags.push({l:'Temple '+a+'–'+b+'mm',c(){document.getElementById('tmn').value=130;document.getElementById('tmx').value=155;sr('t');}});}
+  sel.fit.forEach(v=>tags.push({l:v,c(){sel.fit.delete(v);document.querySelectorAll('[data-g=fit]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on'));}}));
+  sel.shape.forEach(v=>tags.push({l:v,c(){sel.shape.delete(v);document.querySelectorAll('[data-g=shape]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on'));}}));
+  sel.collection.forEach(v=>tags.push({l:v,c(){sel.collection.delete(v);document.querySelectorAll('[data-g=collection]').forEach(c=>c.textContent.trim()===v&&c.classList.remove('on'));}}));
+  if(sel.book)tags.push({l:sel.book,c(){sel.book=null;document.querySelectorAll('.bb').forEach(b=>b.classList.remove('on'));}});
+  _cl=tags.map(t=>t.c);
+  document.getElementById('ats').innerHTML=tags.map((t,i)=>'<span class="atag">'+t.l+'<button onclick="rm('+i+')">×</button></span>').join('');
+}
+function rm(i){_cl[i]();df();}
+function ca(){document.getElementById('q').value='';Object.entries(R).forEach(([k,r])=>{document.getElementById(r.mn).value=r.lo;document.getElementById(r.mx).value=r.hi;document.getElementById(r.mn+'-v').textContent=r.lo;document.getElementById(r.mx+'-v').textContent=r.hi;});document.querySelectorAll('.chip,.bb').forEach(c=>c.classList.remove('on'));sel.fit.clear();sel.shape.clear();sel.collection.clear();sel.book=null;df();}
+function openM(){document.getElementById('modal').classList.add('open');}
+function closeM(){document.getElementById('modal').classList.remove('open');document.getElementById('fmsg').textContent='';}
+function addF(){
+  const msg=document.getElementById('fmsg');
+  const f={name:document.getElementById('fn').value.trim(),sku:document.getElementById('fsk').value.trim(),colors:document.getElementById('fc').value.split(',').map(s=>s.trim()).filter(Boolean),lens:+document.getElementById('fl').value,bridge:+document.getElementById('fb').value,temple:+document.getElementById('ft').value,shape:document.getElementById('fsh').value,books:document.getElementById('fbo').value.split(',').map(s=>s.trim()).filter(Boolean),available:document.getElementById('fav').value==='true',units:+document.getElementById('fu').value};
+  if(!f.name||!f.sku){msg.className='fm err';msg.textContent='Name and SKU required.';return;}
+  frames.push(f);bbooks();df();msg.className='fm ok';msg.textContent=f.name+' added ✓';setTimeout(closeM,1200);
+}
+
+bbooks();df();
+</script>
+</body>
+</html>
+  /* ── VIEWS ── */
+  .view{display:none;height:100vh;flex-direction:column;background:#f2f2f7}
+  .view.active{display:flex}
+
+  /* ── HOME SCREEN ── */
+  #home{background:#f2f2f7}
+  .home-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px 10px;
+    background:#f2f2f7;
+  }
+  .home-avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:#e0e0e0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:600;color:var(--muted);
+    border:1px solid var(--border);
+  }
+  .home-title{
+    font-size:14px;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--text);
+    text-align:center;flex:1;
+  }
+  .home-icon{color:var(--wp-blue);cursor:pointer;padding:4px}
+  .menu-card{
+    background:var(--surface);border-radius:var(--radius-lg);
+    margin:0 16px 16px;overflow:hidden;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
+  }
+  .menu-row{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+    position:relative;
+    cursor:default;
+  }
+  .menu-row:last-child{border-bottom:none}
+  .menu-row.clickable{cursor:pointer}
+  .menu-row.clickable:active{background:#f5f5f5}
+  .menu-row.disabled{opacity:.4;cursor:not-allowed}
+  .menu-icon{
+    width:42px;height:42px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .menu-label{font-size:15px;font-weight:400;color:var(--text);flex:1}
+  .menu-chevron{color:#c7c7cc;flex-shrink:0}
+  .menu-chevron svg{width:8px;height:14px}
+  .notif-badge{
+    width:20px;height:20px;border-radius:50%;
+    background:var(--green);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;margin-right:6px;
+  }
+  .notif-badge svg{width:10px;height:10px}
+  .search-pill-wrap{
+    padding:20px 16px 32px;
+    display:flex;justify-content:center;
+  }
+  .search-pill{
+    display:flex;align-items:center;gap:8px;
+    background:var(--wp-blue);color:#fff;
+    padding:14px 40px;border-radius:30px;
+    font-size:16px;font-weight:500;cursor:pointer;
+    border:none;transition:background .15s;
+    box-shadow:0 2px 12px rgba(59,170,224,.35);
+  }
+  .search-pill:hover{background:var(--wp-blue-dark)}
+  .search-pill svg{width:18px;height:18px}
+
+  /* ── FLOORPLAN SCREEN ── */
+  #floorplan{background:#f2f2f7}
+  .fp-nav{
+    display:flex;align-items:center;
+    padding:14px 18px 10px;
+    background:#f2f2f7;gap:8px;
+  }
+  .back-btn{
+    display:flex;align-items:center;gap:4px;
+    color:var(--wp-blue);font-size:16px;cursor:pointer;
+    background:none;border:none;padding:4px 0;
+  }
+  .back-btn svg{width:10px;height:16px}
+  .fp-title{font-size:17px;font-weight:600;color:var(--text);margin-left:4px}
+  .fp-section{margin:0 16px 8px}
+  .fp-section-label{
+    font-size:12px;font-weight:600;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--hint);
+    padding:10px 4px 6px;
+  }
+  .fp-card{
+    background:var(--surface);border-radius:var(--radius-lg);
+    overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);
+  }
+  .fp-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+    cursor:default;
+  }
+  .fp-row:last-child{border-bottom:none}
+  .fp-row.current{cursor:default}
+  .fp-row-name{font-size:15px;color:var(--text)}
+  .fp-row-name.current-name{font-size:15px;font-weight:500;color:var(--text)}
+  .fp-row-sub{font-size:12px;color:var(--hint);margin-top:2px}
+  .fp-right{display:flex;align-items:center;gap:8px}
+
+  /* ── FRAME SEARCH SCREEN ── */
+  #search-screen{background:var(--bg);overflow:hidden}
+  .fs-topbar{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;background:var(--surface);
+    border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:10;
+  }
+  .fs-back{display:flex;align-items:center;gap:3px;color:var(--wp-blue);font-size:14px;cursor:pointer;background:none;border:none;flex-shrink:0}
+  .fs-back svg{width:8px;height:14px}
+  .fs-logo{font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap;color:var(--text)}
+  .fs-logo-sep{color:var(--hint);margin:0 3px}
+  .sw{flex:1;position:relative;max-width:440px}
+  .sw input{width:100%;padding:7px 10px 7px 30px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);transition:border-color .15s}
+  .sw input:focus{outline:none;border-color:var(--blue-bdr);background:var(--surface)}
+  .sw svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none}
+  .fs-badge{font-size:10px;padding:3px 8px;background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-bdr);border-radius:20px;white-space:nowrap}
+  .fs-atbtn{font-size:11px;padding:5px 10px;background:var(--surface);color:var(--muted);border:1px solid var(--border-md);border-radius:var(--radius);cursor:pointer;white-space:nowrap}
+  .fs-atbtn:hover{background:var(--bg)}
+  .fs-body{display:flex;height:calc(100vh - 46px);overflow:hidden}
+  .sidebar{width:210px;min-width:210px;padding:14px 14px 14px 16px;overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:18px}
+  .ft{font-size:9px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--hint);margin-bottom:7px}
+  .rr{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+  .rr label{font-size:11px;color:var(--muted);min-width:24px}
+  .rr input[type=range]{flex:1;accent-color:var(--wp-blue-dark)}
+  .rv{font-size:11px;font-weight:600;color:var(--text);min-width:28px;text-align:right}
+  .cr{display:flex;flex-wrap:wrap;gap:4px}
+  .chip{font-size:11px;padding:3px 8px;border:1px solid var(--border-md);border-radius:20px;cursor:pointer;color:var(--muted);background:transparent;transition:all .12s;white-space:nowrap}
+  .chip:hover{background:var(--bg)}
+  .chip.on{background:var(--blue-bg);border-color:var(--blue-bdr);color:var(--blue-txt);font-weight:500}
+  .bb{width:100%;text-align:left;font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--muted);background:transparent;transition:all .12s;margin-bottom:3px;display:block}
+  .bb:hover{background:var(--bg)}
+  .bb.on{background:var(--amber-bg);border-color:var(--amber-bdr);color:var(--amber-txt);font-weight:500}
+  .cl{font-size:10px;color:var(--hint);background:none;border:none;cursor:pointer;padding:0;text-align:left}
+  .rp{flex:1;overflow-y:auto;padding:14px 14px}
+  .rh{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .rc{font-size:12px;color:var(--muted);white-space:nowrap}
+  .rc strong{color:var(--text)}
+  .ats{display:flex;flex-wrap:wrap;gap:4px}
+  .atag{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;background:var(--surface);border:1px solid var(--border-md);border-radius:20px;color:var(--muted)}
+  .atag button{border:none;background:none;font-size:13px;line-height:1;cursor:pointer;color:var(--hint);padding:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+  .empty{text-align:center;padding:50px;color:var(--hint);font-size:13px;grid-column:1/-1}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;transition:border-color .15s,box-shadow .15s}
+  .card:hover{border-color:var(--border-md);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .fa{height:48px;display:flex;align-items:center;justify-content:center;margin-bottom:9px}
+  .fa svg{width:100%;height:48px;overflow:visible}
+  .cn{font-size:13px;font-weight:600;margin-bottom:1px}
+  .cs{font-size:11px;color:var(--hint);margin-bottom:7px}
+  .mr{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+  .mp{font-size:10px;padding:2px 6px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--muted);transition:all .12s}
+  .mp.m{background:var(--green-bg);border-color:var(--green-bdr);color:var(--green-txt);font-weight:500}
+  .bt{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px}
+  .btag{font-size:10px;padding:2px 5px;background:var(--amber-bg);border-radius:3px;color:var(--amber-txt)}
+  .av{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);padding-top:7px;border-top:1px solid var(--border)}
+  .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+  .dot.g{background:#2e7d32}.dot.a{background:#b45309}
+  .mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center}
+  .mbg.open{display:flex}
+  .modal{background:var(--surface);border-radius:var(--radius-lg);padding:22px;width:480px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
+  .modal h2{font-size:15px;margin-bottom:14px}
+  .modal label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;margin-top:10px}
+  .modal input,.modal select{width:100%;padding:7px 10px;font-size:13px;border:1px solid var(--border-md);border-radius:var(--radius);background:var(--bg);color:var(--text)}
+  .modal input:focus,.modal select:focus{outline:none;border-color:var(--blue-bdr)}
+  .fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .mf{display:flex;gap:7px;justify-content:flex-end;margin-top:18px}
+  .btn{padding:7px 14px;font-size:13px;border-radius:var(--radius);border:1px solid var(--border-md);cursor:pointer;font-weight:500;background:transparent;color:var(--muted)}
+  .btn:hover{background:var(--bg)}
+  .btnp{background:var(--blue-bg);color:var(--blue-txt);border-color:var(--blue-bdr)}
+  .btnp:hover{background:#d4e6f8}
+  .fm{font-size:12px;margin-top:6px;min-height:16px}
+  .fm.ok{color:var(--green-txt)}.fm.err{color:#8a1a1a}
+
+  @media(max-width:640px){
+    .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--border)}
+    .fs-body{flex-direction:column;height:auto;overflow:visible}
+    .rp{overflow-y:visible}
+    .modal{width:95vw}
+  }
+</style>
+</head>
+<body>
+
+<!-- ── GATE ── -->
+<div id="gate">
+  <div class="gate-logo">WP Internal</div>
+  <div class="gate-sub">Washington Square · Portland</div>
+  <div class="gate-box">
+    <div class="gate-label">Access code</div>
+    <input class="gate-input" type="password" id="gate-pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Continue →</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+  <div class="gate-hint">MVP Prototype · Shared privately</div>
+</div>
+
+<!-- ── HOME SCREEN ── -->
+<div class="view" id="home">
+  <div class="home-nav">
+    <div class="home-avatar">MO</div>
+    <div class="home-title">Washington Square</div>
+    <div class="home-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </div>
+  </div>
+
+  <div class="menu-card">
+    <!-- Checkout - disabled -->
+    <div class="menu-row disabled">
+      <div class="menu-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="8" fill="#f0eeea"/>
+          <path d="M10 12h2l2.4 9.6A2 2 0 0012.6 24h9.8a2 2 0 001.96-1.6L26 16H10" stroke="#6b6a64" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="14" cy="27" r="1.2" fill="#6b6a64"/>
+          <circle cx="22" cy="27" r="1.2" fill="#6b6a64"/>
+        </svg>
+      </div>
+      <div class="menu-label">Checkout</div>
+      <div class="menu-chevron"><svg viewBox="0 0 8 14" fill="none" stroke="#c7c7cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></div>
+    </div>
+
+    <!-- Performance App - disabled -->
+    <div class="menu-row disabled">
+      <div class="menu-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="8" fill="#f0eeea"/>
+          <rect x="9" y="20" width="4" height="8" rx="1" fill="#6b6a64"/>
+          <rect x="16" y="14" width="4" height="14" rx="1" fill="#6b6a64"/>
+          <rect x="23" y="9" width="4" height="19" rx="1" fill="#6b6a64"/>
+        </svg>
+      </div>
+      <div class="menu-label">Performance App</div>
+      <div class="menu-chevron"><svg viewBox="0 0 8 14" fill="none" stroke="#c7c7cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></div>
+    </div>
+
+    <!-- Wait List - disabled -->
+    <div class="menu-row disabled">
+      <div class="menu-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="8" fill="#f0eeea"/>
+          <circle cx="15" cy="14" r="4" stroke="#6b6a64" stroke-width="1.4" fill="none"/>
+          <path d="M9 26c0-3.3 2.7-6 6-6" stroke="#6b6a64" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+          <path d="M22 19v5l3 2" stroke="#6b6a64" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="22" cy="22" r="5" stroke="#6b6a64" stroke-width="1.4" fill="none"/>
+        </svg>
+      </div>
+      <div class="menu-label">Wait List</div>
+      <div class="menu-chevron"><svg viewBox="0 0 8 14" fill="none" stroke="#c7c7cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></div>
+    </div>
+
+    <!-- Floorplan - CLICKABLE with notification -->
+    <div class="menu-row clickable" onclick="showView('floorplan')">
+      <div class="menu-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="8" fill="#e8f4e8"/>
+          <rect x="9" y="9" width="8" height="8" rx="1" stroke="#1e5e1e" stroke-width="1.4" fill="none"/>
+          <rect x="19" y="9" width="8" height="8" rx="1" stroke="#1e5e1e" stroke-width="1.4" fill="none"/>
+          <rect x="9" y="19" width="8" height="8" rx="1" stroke="#1e5e1e" stroke-width="1.4" fill="none"/>
+          <rect x="19" y="19" width="8" height="8" rx="1" stroke="#1e5e1e" stroke-width="1.4" fill="none"/>
+        </svg>
+      </div>
+      <div class="menu-label" style="display:flex;align-items:center;gap:8px;">
+        Floorplan
+        <div class="notif-badge">
+          <svg viewBox="0 0 10 10" fill="none"><text x="5" y="8" text-anchor="middle" font-size="9" font-weight="700" fill="white">!</text></svg>
+        </div>
+      </div>
+      <div class="menu-chevron"><svg viewBox="0 0 8 14" fill="none" stroke="#c7c7cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></div>
+    </div>
+
+    <!-- Warby Parker Apps - disabled -->
+    <div class="menu-row disabled">
+      <div class="menu-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="8" fill="#f0eeea"/>
+          <rect x="9" y="12" width="18" height="14" rx="2" stroke="#6b6a64" stroke-width="1.4" fill="none"/>
+          <path d="M13 12V10a2 2 0 014 0v2" stroke="#6b6a64" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+          <circle cx="18" cy="19" r="2" fill="#6b6a64"/>
+        </svg>
+      </div>
+      <div class="menu-label">Warby Parker Apps</div>
+      <div class="menu-chevron"><svg viewBox="0 0 8 14" fill="none" stroke="#c7c7cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></div>
+    </div>
+  </div>
+
+  <div class="search-pill-wrap">
+    <button class="search-pill" onclick="showView('search-screen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+      Search products
+    </button>
+  </div>
+</div>
+
+<!-- ── FLOORPLAN SCREEN ── -->
+<div class="view" id="floorplan">
+  <div class="fp-nav">
+    <button class="back-btn" onclick="showView('home')">
+      <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1L2 8l6 7"/></svg>
+      Back
+    </button>
+    <div class="fp-title">Floorplan</div>
+  </div>
+
+  <div class="fp-section">
+    <div class="fp-section-label">Current floorset</div>
+    <div class="fp-card">
+      <div class="fp-row current">
         <div>
           <div class="fp-row-name current-name">Spring Core 2</div>
           <div class="fp-row-sub">Active now</div>
