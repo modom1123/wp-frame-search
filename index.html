@@ -131,15 +131,72 @@
   .form-msg { font-size: 12px; margin-top: 8px; min-height: 18px; }
   .form-msg.ok { color: var(--green-txt); } .form-msg.err { color: var(--red-txt); }
 
-  @media (max-width: 640px) {
-    .sidebar { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid var(--border); }
-    .app-body { flex-direction: column; height: auto; overflow: visible; }
-    .results-pane { overflow-y: visible; }
-    .modal { width: 95vw; }
+  /* PASSWORD GATE */
+  #gate {
+    position: fixed; inset: 0; z-index: 999;
+    background: #00263A;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #gate.hidden { display: none; }
+  .gate-logo {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: .06em;
+    color: rgba(255,255,255,.9); margin-bottom: 36px;
+  }
+  .gate-logo span { color: rgba(255,255,255,.35); margin: 0 6px; }
+  .gate-box {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px; padding: 32px 36px;
+    width: 320px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .gate-label {
+    font-size: 11px; font-weight: 500; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(255,255,255,.4);
+  }
+  .gate-input {
+    width: 100%; padding: 10px 14px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 4px; color: white;
+    font-size: 14px; letter-spacing: .12em;
+    outline: none; transition: border-color .15s;
+  }
+  .gate-input:focus { border-color: rgba(255,255,255,.4); }
+  .gate-input::placeholder { color: rgba(255,255,255,.25); letter-spacing: .04em; }
+  .gate-btn {
+    width: 100%; padding: 10px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 4px; color: white;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background .15s; letter-spacing: .04em;
+  }
+  .gate-btn:hover { background: rgba(255,255,255,.2); }
+  .gate-error {
+    font-size: 12px; color: #f4a5a5;
+    text-align: center; min-height: 18px;
+  }
+  .gate-hint {
+    font-size: 11px; color: rgba(255,255,255,.2);
+    text-align: center; margin-top: 8px;
   }
 </style>
 </head>
 <body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-logo">WP<span>|</span>Frame Search</div>
+  <div class="gate-box">
+    <div class="gate-label">Access code</div>
+    <input class="gate-input" type="password" id="gate-pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="gate-btn" onclick="checkPw()">Continue →</button>
+    <div class="gate-error" id="gate-err"></div>
+  </div>
+  <div class="gate-hint">Shared by Mallory Odom · Portfolio prototype</div>
+</div>
 
 <div class="topbar">
   <div class="logo">WP<span class="logo-sep">|</span>Frame Search</div>
@@ -509,6 +566,30 @@ const DEMO = [
 ];
 
 init();
+
+// ─── Password gate ────────────────────────────────────────────────────────
+// Change 'frames2026' below to whatever password you want to use
+const GATE_PW = 'poetential';
+const SESSION_KEY = 'wp_fs_auth';
+
+function checkPw() {
+  const val = document.getElementById('gate-pw').value.trim();
+  if (val === GATE_PW) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('gate').classList.add('hidden');
+  } else {
+    const err = document.getElementById('gate-err');
+    err.textContent = 'Incorrect — try again.';
+    document.getElementById('gate-pw').value = '';
+    document.getElementById('gate-pw').focus();
+    setTimeout(() => err.textContent = '', 2500);
+  }
+}
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('gate').classList.add('hidden');
+}
 </script>
 </body>
 </html>
